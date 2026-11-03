@@ -1,0 +1,57 @@
+package com.aipaca.rumbo.routes.application.internal.commandservices;
+import com.aipaca.rumbo.routes.application.commandservices.RouteCommandService;
+import com.aipaca.rumbo.routes.application.ports.StudentAuthorizationPort;
+import com.aipaca.rumbo.routes.domain.model.*;
+import com.aipaca.rumbo.routes.domain.model.commands.*;
+import com.aipaca.rumbo.routes.domain.repositories.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.*;
+@Service @Transactional
+public class RouteCommandServiceImpl implements RouteCommandService {
+    private final RouteRepository repository;
+    private final TripRepository trips;
+    private final StudentAuthorizationPort studentAuthorization;
+    public RouteCommandServiceImpl(RouteRepository repository, TripRepository trips, StudentAuthorizationPort studentAuthorization) {
+        this.repository=repository; this.trips=trips; this.studentAuthorization=studentAuthorization;
+    }
+    private Route required(UUID id) {
+        return repository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Route not found"));
+    }
+    @Override public Route handle(CreateRouteCommand command) {
+        Route route=new Route(command.name(),command.shift(),command.vehicleId());
+        route.replaceStops(command.stops());
+        route.updateSchedule(command.schedule(),command.scheduleConfirmed());
+        return repository.save(route);
+    }
+    @Override public Route handle(UpdateRouteCommand command) {
+        Route route=required(command.routeId());
+        route.rename(command.name());route.setShift(command.shift());route.setVehicleId(command.vehicleId());
+        route.replaceStops(command.stops());
+        route.updateSchedule(command.schedule(),command.scheduleConfirmed());
+        return repository.save(route);
+    }
+    @Override public Route handle(UpdateRouteScheduleCommand command) {
+        Route route=required(command.routeId());
+        route.updateSchedule(command.schedule(),command.confirm());
+        return repository.save(route);
+    }
+    @Override public RouteAssignment handle(AssignStudentCommand command) {
+        Route route=required(command.routeId());
+        if (!studentAuthorization.isAuthorized(command.studentId(),route.getVehicleId()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Student is not authorized");
+        RouteAssignment assignment=route.assign(command.stopId(),command.studentId());
+        repository.save(route);
+        return assignment;
+    }
+    @Override public Route handle(PublishRouteCommand command) {
+        Route route=required(command.routeId());route.publish();return repository.save(route);
+    }
+    @Override public void handle(DeleteRouteCommand command) {
+        Route route=required(command.routeId());
+        if (trips.existsByRouteId(command.routeId())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Route has trips");
+        repository.delete(route);
+    }
+}
