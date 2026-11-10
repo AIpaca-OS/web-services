@@ -1,5 +1,9 @@
 package com.aipaca.rumbo.routes.application.ports;
-/** ACL contract owned by Routes; Students BC must provide a verified implementation. */
+
+/**
+ * Anti-corruption layer: Profiles owns the decision about student eligibility.
+ * The driver bearer token is verified by Profiles, never by trusting frontend IDs.
+ */
 public interface StudentAuthorizationPort {
-    boolean isAuthorized(String studentId, String vehicleId);
+    boolean isAuthorized(String studentId, String vehicleId, String authorizationHeader);
 }
