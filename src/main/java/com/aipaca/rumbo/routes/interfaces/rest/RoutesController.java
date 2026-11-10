@@ -24,14 +24,28 @@ public class RoutesController {
     private final RouteQueryService queries;
     private final TripCommandService tripCommands;
     private final TripQueryService tripQueries;
+    private final com.aipaca.rumbo.routes.application.ports.StudentAuthorizationPort studentAuthorization;
     public RoutesController(RouteCommandService commands, RouteQueryService queries,
-            TripCommandService tripCommands,TripQueryService tripQueries){
-        this.commands=commands;this.queries=queries;this.tripCommands=tripCommands;this.tripQueries=tripQueries;
+            TripCommandService tripCommands,TripQueryService tripQueries,
+            com.aipaca.rumbo.routes.application.ports.StudentAuthorizationPort studentAuthorization){
+        this.commands=commands;this.queries=queries;this.tripCommands=tripCommands;
+        this.tripQueries=tripQueries;this.studentAuthorization=studentAuthorization;
     }
     @GetMapping
     @Operation(summary="List routes",description="Lists routes available to the current application context. Authentication and driver filtering are pending.")
     @ApiResponse(responseCode="200",description="Routes returned")
     public List<RouteView> all(){return queries.handle(new GetAllRoutesQuery()).stream().map(RouteResourceFromEntityAssembler::view).toList();}
+    @GetMapping("/eligible-students")
+    @Operation(summary="List eligible students for authenticated driver",
+            description="Profiles returns only ACTIVE students with valid authorization and service relationship for the bearer-token driver.")
+    @ApiResponses({@ApiResponse(responseCode="200",description="Eligible students returned"),
+        @ApiResponse(responseCode="401",description="Driver authentication required"),
+        @ApiResponse(responseCode="403",description="Caller is not an authorized driver"),
+        @ApiResponse(responseCode="503",description="Profiles unavailable")})
+    public List<com.aipaca.rumbo.routes.application.ports.StudentAuthorizationPort.EligibleStudent> eligibleStudents(
+            @RequestHeader(value="Authorization",required=false) String authorizationHeader){
+        return studentAuthorization.getEligibleStudents(authorizationHeader);
+    }
     @GetMapping("/{id}")
     @Operation(summary="Get route by ID")
     @ApiResponses({@ApiResponse(responseCode="200",description="Route found"),@ApiResponse(responseCode="404",description="Route not found")})
