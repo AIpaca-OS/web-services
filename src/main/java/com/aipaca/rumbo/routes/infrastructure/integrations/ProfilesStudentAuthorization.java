@@ -63,4 +63,34 @@ public class ProfilesStudentAuthorization implements StudentAuthorizationPort {
                     "Profiles authorization service is unavailable");
         }
     }
+    @Override
+    public boolean canManageVehicle(String vehicleId, String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.matches("(?i)^Bearer \\S+$"))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Driver authentication is required");
+        if (vehicleId == null || vehicleId.isBlank())
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "A vehicle must be assigned");
+        if (!configured)
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Profiles authorization URL is not configured");
+        try {
+            EligibilityResponse response = client.get()
+                    .uri(builder -> builder.path("/api/v1/profiles/driver/vehicles/{vehicleId}/access")
+                            .build(vehicleId))
+                    .header("Authorization", authorizationHeader)
+                    .retrieve()
+                    .body(EligibilityResponse.class);
+            return response != null && response.authorized();
+        } catch (RestClientResponseException exception) {
+            int status = exception.getStatusCode().value();
+            if (status == 401)
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Driver session is not valid");
+            if (status == 403 || status == 404) return false;
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Profiles vehicle permission could not be verified");
+        } catch (RestClientException exception) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Profiles authorization service is unavailable");
+        }
+    }
+
 }
