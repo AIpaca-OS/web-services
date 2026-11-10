@@ -120,4 +120,16 @@ class RouteAssignmentAuthorizationTests {
         verify(routes).save(route);
     }
 
+    @Test void publishedRouteRejectsLaterAssignmentChanges() {
+        when(profiles.isAuthorized("student-1", "vehicle-1", TOKEN)).thenReturn(true);
+        commands.handle(new AssignStudentCommand(route.getId(), stopId, "student-1", TOKEN));
+        commands.handle(new PublishRouteCommand(route.getId(), TOKEN));
+
+        var changes = List.of(new RouteAssignment(stopId, "student-2"));
+        var exception = assertThrows(ResponseStatusException.class,
+                () -> commands.handle(new ReplaceRouteAssignmentsCommand(route.getId(), changes, TOKEN)));
+        assertEquals(HttpStatus.CONFLICT.value(), exception.getStatusCode().value());
+        assertEquals("student-1", route.getAssignments().getFirst().getStudentId());
+    }
+
 }
