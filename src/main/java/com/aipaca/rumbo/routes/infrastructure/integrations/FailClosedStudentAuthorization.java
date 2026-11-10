@@ -15,4 +15,10 @@ public class FailClosedStudentAuthorization implements StudentAuthorizationPort 
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                 "Profiles authorization service is not configured");
     }
+
+    @Override
+    public boolean canManageVehicle(String vehicleId, String authorizationHeader) {
+        throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                "Profiles authorization service is not configured");
+    }
 }
