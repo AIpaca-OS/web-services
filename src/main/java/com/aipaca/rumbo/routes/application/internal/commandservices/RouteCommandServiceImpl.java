@@ -20,6 +20,11 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     private Route required(UUID id) {
         return repository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Route not found"));
     }
+    private void requireConfigurable(Route route) {
+        if (route.getStatus() != RouteStatus.CONFIGURABLE)
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Published routes cannot be reconfigured");
+    }
     @Override public Route handle(CreateRouteCommand command) {
         Route route=new Route(command.name(),command.shift(),command.vehicleId());
         route.replaceStops(command.stops());
@@ -28,6 +33,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
     @Override public Route handle(UpdateRouteCommand command) {
         Route route=required(command.routeId());
+        requireConfigurable(route);
         route.rename(command.name());route.setShift(command.shift());route.setVehicleId(command.vehicleId());
         route.replaceStops(command.stops());
         route.updateSchedule(command.schedule(),command.scheduleConfirmed());
@@ -35,11 +41,13 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
     @Override public Route handle(UpdateRouteScheduleCommand command) {
         Route route=required(command.routeId());
+        requireConfigurable(route);
         route.updateSchedule(command.schedule(),command.confirm());
         return repository.save(route);
     }
     @Override public RouteAssignment handle(AssignStudentCommand command) {
         Route route=required(command.routeId());
+        requireConfigurable(route);
         if (!studentAuthorization.isAuthorized(command.studentId(), route.getVehicleId(), command.authorizationHeader()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Student is not authorized for this driver");
         if (route.getAssignments().stream().anyMatch(a -> a.getStudentId().equals(command.studentId())))
@@ -63,6 +71,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
     @Override public Route handle(ReplaceRouteAssignmentsCommand command) {
         Route route = required(command.routeId());
+        requireConfigurable(route);
         if (!studentAuthorization.canManageVehicle(route.getVehicleId(), command.authorizationHeader()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Driver cannot manage this vehicle");
         if (command.assignments() == null)
