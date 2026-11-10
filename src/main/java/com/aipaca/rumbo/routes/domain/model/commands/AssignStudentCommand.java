@@ -1,6 +1,6 @@
 package com.aipaca.rumbo.routes.domain.model.commands;
-    import com.aipaca.rumbo.routes.domain.model.*;
-import java.util.*;
-import java.time.*;
-    /** Domain intent. Validation and business rules live in the aggregate. */
-    public record AssignStudentCommand(UUID routeId, UUID stopId, String studentId) {}
+
+import java.util.UUID;
+
+/** Assign a student only after Profiles verifies the authenticated driver. */
+public record AssignStudentCommand(UUID routeId, UUID stopId, String studentId, String authorizationHeader) {}
