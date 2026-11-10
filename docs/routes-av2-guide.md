@@ -58,8 +58,8 @@ Swagger UI: `http://localhost:8080/swagger-ui/index.html` (verify exact path in 
 | POST | /api/v1/routes | Create route |
 | PUT | /api/v1/routes/{id} | Replace route configuration |
 | PUT | /api/v1/routes/{id}/schedule | Confirm or update the weekly schedule |
-| GET | /api/v1/routes/{id}/assignments | List assigned students |
-| POST | /api/v1/routes/{id}/assignments | Assign an authorized student |
+| GET | /api/v1/routes/{id}/assignments | List assignments (access control still pending) |
+| GET | /api/v1/routes/eligible-students | List restricted candidates provided by Profiles |\n| POST | /api/v1/routes/{id}/assignments | Assign an authorized student |\n| PUT | /api/v1/routes/{id}/assignments | Atomically replace authorized student-to-stop assignments |
 | PATCH | /api/v1/routes/{id}/status | Publish a valid route |
 | DELETE | /api/v1/routes/{id} | Delete a route without trips |
 | POST | /api/v1/routes/{id}/trips | Plan a trip |
@@ -88,9 +88,9 @@ Expected HTTP 201: backend-generated route UUID and code, ordered stops, schedul
 
 ## Important limitations to disclose
 
-- **Students integration:** The `FailClosedStudentAuthorization` port intentionally returns HTTP 503 until an authenticated authorization integration with Profiles is supplied. Do not bypass this check using a hardcoded acceptance. Publication needs a genuine assigned student, so it also remains blocked until the integration works.
-- **Frontend assignments:** The current editor can choose student references, but storing stops is **not** equivalent to persisting `RouteAssignment`. The backend requires a separate assignment request. This remains an integration item.
-- **Driver access:** Routes list and controller do not yet enforce authenticated driver filtering. Do not claim this use case is secured.
+- **Students integration:** Routes now includes a Profiles HTTP authorization adapter with explicit student eligibility, driver vehicle access and publication revalidation. It is disabled by default; `FailClosedStudentAuthorization` returns HTTP 503 until Profiles implements the verified endpoints and `PROFILES_AUTHORIZATION_ENABLED=true` is configured. Do not bypass this check using a hardcoded acceptance. See `docs/profiles-routes-integration-contract.md`.
+- **Frontend assignments:** The Angular editor now saves route configuration and then sends its selected assignments with a separate atomic `PUT /assignments`. When the Profiles endpoint is unavailable or no real driver bearer token is provided, the request is rejected and the editor displays an error. The signed-token IAM login/interceptor is not yet implemented.
+- **Driver access:** The protected assignment and publication endpoints delegate verification to Profiles, but other Routes read/update endpoints do not yet enforce authenticated driver filtering. They can include sensitive student references. Do not expose real student records publicly or describe the entire context as production-secure.
 - **Production deployment:** Render publication and end-to-end frontend execution require verification; code commits are not proof of deployment.
 
 ## Review checklist
@@ -102,7 +102,7 @@ Expected HTTP 201: backend-generated route UUID and code, ordered stops, schedul
 - [ ] POST /routes returns generated code and stop order.
 - [ ] PUT /schedule preserves schedule and confirms it.
 - [ ] PATCH /status rejects incomplete routes.
-- [ ] Assignment without Profiles integration responds 503 (fail closed).
+- [ ] Assignment without Profiles integration responds 503 (fail closed).\n- [ ] Protected endpoints return 401 without a bearer token once Profiles integration is enabled.\n- [ ] Profiles returns active and authorized student candidates for the authenticated driver.\n- [ ] PUT /assignments rejects an unauthorized student without partially changing assignments.\n- [ ] PATCH /status revalidates authorizations and refuses revoked students.
 - [ ] Swagger/OpenAPI and Postman responses captured.
 - [ ] Render URL and deployed frontend URL tested.
 - [ ] Jira statuses updated only after reviewing evidence.
