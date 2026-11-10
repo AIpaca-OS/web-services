@@ -7,5 +7,6 @@ public interface RouteCommandService {
     Route handle(UpdateRouteScheduleCommand command);
     RouteAssignment handle(AssignStudentCommand command);
     Route handle(PublishRouteCommand command);
+    Route handle(ReplaceRouteAssignmentsCommand command);
     void handle(DeleteRouteCommand command);
 }
