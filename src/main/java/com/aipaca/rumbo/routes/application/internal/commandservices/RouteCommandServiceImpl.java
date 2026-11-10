@@ -61,6 +61,28 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         route.publish();
         return repository.save(route);
     }
+    @Override public Route handle(ReplaceRouteAssignmentsCommand command) {
+        Route route = required(command.routeId());
+        if (!studentAuthorization.canManageVehicle(route.getVehicleId(), command.authorizationHeader()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Driver cannot manage this vehicle");
+        if (command.assignments() == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assignments are required");
+
+        Set<String> studentIds = new HashSet<>();
+        Set<UUID> stopIds = new HashSet<>();
+        for (RouteStop stop : route.getStops()) stopIds.add(stop.getId());
+
+        for (RouteAssignment assignment : command.assignments()) {
+            if (!stopIds.contains(assignment.getStopId()))
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stop is not part of this route");
+            if (!studentIds.add(assignment.getStudentId()))
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Student is assigned more than once");
+            if (!studentAuthorization.isAuthorized(assignment.getStudentId(), route.getVehicleId(), command.authorizationHeader()))
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Student is not authorized for this driver");
+        }
+        route.replaceAssignments(command.assignments());
+        return repository.save(route);
+    }
     @Override public void handle(DeleteRouteCommand command) {
         Route route=required(command.routeId());
         if (trips.existsByRouteId(command.routeId())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Route has trips");
