@@ -93,4 +93,32 @@ public class ProfilesStudentAuthorization implements StudentAuthorizationPort {
         }
     }
 
+    @Override
+    public java.util.List<EligibleStudent> getEligibleStudents(String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.matches("(?i)^Bearer \\S+$"))
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Driver authentication is required");
+        if (!configured)
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Profiles authorization URL is not configured");
+        try {
+            EligibleStudent[] response = client.get()
+                    .uri("/api/v1/profiles/driver/eligible-students")
+                    .header("Authorization", authorizationHeader)
+                    .retrieve()
+                    .body(EligibleStudent[].class);
+            return response == null ? java.util.List.of() : java.util.List.of(response);
+        } catch (RestClientResponseException exception) {
+            int status = exception.getStatusCode().value();
+            if (status == 401)
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Driver session is not valid");
+            if (status == 403)
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only authorized drivers can list students");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Profiles student catalog could not be verified");
+        } catch (RestClientException exception) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Profiles authorization service is unavailable");
+        }
+    }
+
 }
