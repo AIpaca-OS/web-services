@@ -43,7 +43,7 @@ public class RouteService {
     public Route schedule(UUID id,ScheduleUpdate input){var r=get(id);r.updateSchedule(convert(input.schedule()),input.confirm());return routes.save(r);}
     @Transactional(readOnly=true) public List<RouteAssignment> assignments(UUID id){return get(id).getAssignments();}
     public RouteAssignment assign(UUID id,AssignmentInput input){var r=get(id);
-        if(!studentAuth.isAuthorized(input.studentId(),r.getVehicleId()))
+        if(!studentAuth.isAuthorized(input.studentId(), r.getVehicleId(), null))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Student is not authorized");
         var a=r.assign(input.stopId(),input.studentId());routes.save(r);return a;
     }
