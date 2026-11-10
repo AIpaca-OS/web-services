@@ -6,4 +6,5 @@ package com.aipaca.rumbo.routes.application.ports;
  */
 public interface StudentAuthorizationPort {
     boolean isAuthorized(String studentId, String vehicleId, String authorizationHeader);
+    boolean canManageVehicle(String vehicleId, String authorizationHeader);
 }
