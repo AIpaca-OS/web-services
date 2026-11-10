@@ -1,5 +1,7 @@
 package com.aipaca.rumbo.notifications.domain.model.valueobjects;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public record StudentId(Long studentId) {
 
     public StudentId{

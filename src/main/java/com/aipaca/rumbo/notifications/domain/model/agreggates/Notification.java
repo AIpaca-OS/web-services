@@ -35,8 +35,6 @@ public class Notification extends AbstractDomainAggregateRoot<Notification>{
         this.message = Strings.EMPTY;
         this.readAt = Strings.EMPTY;
         this.read = false;
-        this.routeId= new RouteId();
-        this.studentId = new StudentId();
     }
 
     public Notification(CreateNotificationCommand command) {

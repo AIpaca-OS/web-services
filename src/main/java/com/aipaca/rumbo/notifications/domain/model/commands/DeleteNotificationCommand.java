@@ -1,4 +1,4 @@
 package com.aipaca.rumbo.notifications.domain.model.commands;
 
-public class DeleteNotificationCommand(Long id) {
+public record DeleteNotificationCommand(Long id) {
 }
