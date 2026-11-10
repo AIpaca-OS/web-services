@@ -21,30 +21,17 @@ public class PlanCommandServiceImpl implements PlanCommandService {
     }
 
     @Override
-    public Result<Long, ApplicationError> handle(
-            CreatePlanCommand command
-    ) {
-        if (planRepository.existsByName(command.name())) {
-            return Result.failure(
-                    ApplicationError.conflict(
-                            "Plan",
-                            "Name '%s' already exists"
-                                    .formatted(command.name())
-                    )
-            );
-        }
+    public Result<Long, ApplicationError> handle(CreatePlanCommand command) {
+        if (planRepository.existsByName(command.name()))
+            return Result.failure(ApplicationError.conflict(
+                    "Plan", "Name '%s' already exists".formatted(command.name())));
 
         var plan = new Plan(command);
 
         try {
             plan = planRepository.save(plan);
         } catch (Exception e) {
-            return Result.failure(
-                    ApplicationError.unexpected(
-                            "create-plan",
-                            e.getMessage()
-                    )
-            );
+            return Result.failure(ApplicationError.unexpected("create-plan", e.getMessage()));
         }
 
         return Result.success(plan.getId());
