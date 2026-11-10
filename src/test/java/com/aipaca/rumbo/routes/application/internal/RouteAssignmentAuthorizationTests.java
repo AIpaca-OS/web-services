@@ -86,4 +86,38 @@ class RouteAssignmentAuthorizationTests {
         var published = commands.handle(new PublishRouteCommand(route.getId(), TOKEN));
         assertEquals(RouteStatus.PUBLISHED, published.getStatus());
     }
+    @Test void replacingAssignmentsRequiresDriverPermission() {
+        when(profiles.canManageVehicle("vehicle-1", TOKEN)).thenReturn(false);
+        var next = List.of(new RouteAssignment(stopId, "student-1"));
+        var exception = assertThrows(ResponseStatusException.class,
+                () -> commands.handle(new ReplaceRouteAssignmentsCommand(route.getId(), next, TOKEN)));
+        assertEquals(HttpStatus.FORBIDDEN.value(), exception.getStatusCode().value());
+        assertTrue(route.getAssignments().isEmpty());
+        verify(routes, never()).save(any());
+    }
+
+    @Test void replacingAssignmentsDoesNotPartiallySaveWhenOneStudentIsRejected() {
+        when(profiles.canManageVehicle("vehicle-1", TOKEN)).thenReturn(true);
+        when(profiles.isAuthorized("student-1", "vehicle-1", TOKEN)).thenReturn(true);
+        when(profiles.isAuthorized("student-2", "vehicle-1", TOKEN)).thenReturn(false);
+        var next = List.of(
+                new RouteAssignment(stopId, "student-1"),
+                new RouteAssignment(stopId, "student-2"));
+        var exception = assertThrows(ResponseStatusException.class,
+                () -> commands.handle(new ReplaceRouteAssignmentsCommand(route.getId(), next, TOKEN)));
+        assertEquals(HttpStatus.FORBIDDEN.value(), exception.getStatusCode().value());
+        assertTrue(route.getAssignments().isEmpty());
+        verify(routes, never()).save(any());
+    }
+
+    @Test void authorizedDriverCanSynchronizeAssignments() {
+        when(profiles.canManageVehicle("vehicle-1", TOKEN)).thenReturn(true);
+        when(profiles.isAuthorized("student-1", "vehicle-1", TOKEN)).thenReturn(true);
+        var next = List.of(new RouteAssignment(stopId, "student-1"));
+        var saved = commands.handle(new ReplaceRouteAssignmentsCommand(route.getId(), next, TOKEN));
+        assertEquals(1, saved.getAssignments().size());
+        assertEquals("student-1", saved.getAssignments().getFirst().getStudentId());
+        verify(routes).save(route);
+    }
+
 }
