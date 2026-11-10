@@ -1,7 +1,7 @@
 package com.aipaca.rumbo.routes.interfaces.rest;
 import com.aipaca.rumbo.routes.application.commandservices.*;
 import com.aipaca.rumbo.routes.application.queryservices.*;
-import com.aipaca.rumbo.routes.domain.model.RouteStatus;
+import com.aipaca.rumbo.routes.domain.model.*;
 import com.aipaca.rumbo.routes.domain.model.commands.*;
 import com.aipaca.rumbo.routes.domain.model.queries.*;
 import com.aipaca.rumbo.routes.interfaces.rest.transform.*;
@@ -78,6 +78,24 @@ public class RoutesController {
         return RouteResourceFromEntityAssembler.view(
             commands.handle(new AssignStudentCommand(id,r.stopId(),r.studentId(),authorizationHeader)));
     }
+    @PutMapping(value="/{id}/assignments", consumes=MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary="Synchronize route assignments",
+            description="Atomic replacement. Profiles verifies the driver, vehicle and every student's eligibility.")
+    @ApiResponses({@ApiResponse(responseCode="200",description="Assignments saved"),
+        @ApiResponse(responseCode="401",description="Driver authentication required"),
+        @ApiResponse(responseCode="403",description="Driver or student not authorized"),
+        @ApiResponse(responseCode="409",description="Duplicate student"),
+        @ApiResponse(responseCode="503",description="Profiles authorization unavailable")})
+    public RouteView replaceAssignments(@PathVariable UUID id,
+            @Valid @org.springframework.web.bind.annotation.RequestBody List<@Valid AssignmentInput> resources,
+            @RequestHeader(value="Authorization",required=false) String authorizationHeader){
+        List<RouteAssignment> assignments = resources.stream()
+                .map(r -> new RouteAssignment(r.stopId(), r.studentId()))
+                .toList();
+        return RouteResourceFromEntityAssembler.view(commands.handle(
+                new ReplaceRouteAssignmentsCommand(id, assignments, authorizationHeader)));
+    }
+
     @PatchMapping(value="/{id}/status",consumes=MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary="Publish configured route",description="Requires stops, confirmed schedule, vehicle and assigned students.")
     @RequestBody(content=@Content(examples=@ExampleObject(value="{\"status\":\"PUBLISHED\"}")))
