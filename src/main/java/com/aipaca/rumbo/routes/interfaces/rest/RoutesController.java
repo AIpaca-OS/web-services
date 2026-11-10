@@ -65,19 +65,29 @@ public class RoutesController {
     public List<AssignmentView> assignments(@PathVariable UUID id){return queries.handle(new GetRouteAssignmentsQuery(id)).stream().map(RouteResourceFromEntityAssembler::view).toList();}
     @PostMapping(value="/{id}/assignments",consumes=MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary="Assign authorized student",description="Requires Students authorization ACL; returns HTTP 503 until integration is configured.")
+    @Operation(summary="Assign authorized student",description="Profiles verifies bearer token, driver, vehicle, active student and approved relationship.")
     @RequestBody(content=@Content(examples=@ExampleObject(value="{\"studentId\":\"student-1\",\"stopId\":\"11111111-1111-1111-1111-111111111111\"}")))
-    @ApiResponses({@ApiResponse(responseCode="201",description="Assignment created"),@ApiResponse(responseCode="503",description="Student authorization unavailable")})
-    public AssignmentView assign(@PathVariable UUID id,@Valid @org.springframework.web.bind.annotation.RequestBody AssignmentInput r){
-        return RouteResourceFromEntityAssembler.view(commands.handle(new AssignStudentCommand(id,r.stopId(),r.studentId())));
+    @ApiResponses({@ApiResponse(responseCode="201",description="Assignment created"),
+        @ApiResponse(responseCode="401",description="Driver credentials required"),
+        @ApiResponse(responseCode="403",description="Student not eligible for driver"),
+        @ApiResponse(responseCode="409",description="Student already assigned"),
+        @ApiResponse(responseCode="503",description="Profiles authorization unavailable")})
+    public AssignmentView assign(@PathVariable UUID id,
+            @Valid @org.springframework.web.bind.annotation.RequestBody AssignmentInput r,
+            @RequestHeader(value="Authorization",required=false) String authorizationHeader){
+        return RouteResourceFromEntityAssembler.view(
+            commands.handle(new AssignStudentCommand(id,r.stopId(),r.studentId(),authorizationHeader)));
     }
     @PatchMapping(value="/{id}/status",consumes=MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary="Publish configured route",description="Requires stops, confirmed schedule, vehicle and assigned students.")
     @RequestBody(content=@Content(examples=@ExampleObject(value="{\"status\":\"PUBLISHED\"}")))
     @ApiResponses({@ApiResponse(responseCode="200",description="Route published"),@ApiResponse(responseCode="422",description="Route incomplete")})
-    public RouteView status(@PathVariable UUID id,@Valid @org.springframework.web.bind.annotation.RequestBody StatusUpdate r){
+    public RouteView status(@PathVariable UUID id,
+            @Valid @org.springframework.web.bind.annotation.RequestBody StatusUpdate r,
+            @RequestHeader(value="Authorization",required=false) String authorizationHeader){
         if(r.status()!=RouteStatus.PUBLISHED)throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Only publication supported");
-        return RouteResourceFromEntityAssembler.view(commands.handle(new PublishRouteCommand(id)));
+        return RouteResourceFromEntityAssembler.view(
+            commands.handle(new PublishRouteCommand(id,authorizationHeader)));
     }
     @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(summary="Delete route without trips")
