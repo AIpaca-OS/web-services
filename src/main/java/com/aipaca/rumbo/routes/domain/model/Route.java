@@ -65,6 +65,24 @@ public class Route {
             throw new IllegalArgumentException("Student is already assigned to route");
         var a=new RouteAssignment(stopId,studentId);assignments.add(a);return a;
     }
+    /**
+     * Replaces route assignments only after the application service has verified
+     * the authenticated driver and each proposed student through Profiles.
+     */
+    public void replaceAssignments(List<RouteAssignment> proposed) {
+        if (proposed == null) throw new IllegalArgumentException("Assignments are required");
+        Set<String> students = new HashSet<>();
+        Set<UUID> validStops = new HashSet<>();
+        for (RouteStop stop : stops) validStops.add(stop.getId());
+        for (RouteAssignment assignment : proposed) {
+            if (!validStops.contains(assignment.getStopId()))
+                throw new IllegalArgumentException("Assigned stop is not part of this route");
+            if (!students.add(assignment.getStudentId()))
+                throw new IllegalArgumentException("Duplicate student in route assignments");
+        }
+        assignments.clear();
+        assignments.addAll(proposed);
+    }
     public void validateForPublication() {
         if(stops.isEmpty() || !scheduleConfirmed || schedule.isEmpty() || assignments.isEmpty())
             throw new IllegalArgumentException("Publishing requires stops, confirmed schedule and an assigned student");
