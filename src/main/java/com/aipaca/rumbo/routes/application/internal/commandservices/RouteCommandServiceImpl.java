@@ -25,6 +25,20 @@ public class RouteCommandServiceImpl implements RouteCommandService {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Published routes cannot be reconfigured");
     }
+    private void authorizePublishedEdit(Route route, String authorizationHeader) {
+        if (route.getStatus() == RouteStatus.PUBLISHED &&
+                !studentAuthorization.canManageVehicle(route.getVehicleId(), authorizationHeader))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Driver cannot modify this published route");
+    }
+    private void verifyPublishedAssignments(Route route, String authorizationHeader) {
+        route.validateForPublication();
+        for (RouteAssignment assignment : route.getAssignments()) {
+            if (!studentAuthorization.isAuthorized(
+                    assignment.getStudentId(), route.getVehicleId(), authorizationHeader))
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "An assigned student is no longer authorized");
+        }
+    }
     @Override public Route handle(CreateRouteCommand command) {
         Route route=new Route(command.name(),command.shift(),command.vehicleId());
         route.replaceStops(command.stops());
@@ -33,16 +47,25 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
     @Override public Route handle(UpdateRouteCommand command) {
         Route route=required(command.routeId());
-        requireConfigurable(route);
-        route.rename(command.name());route.setShift(command.shift());route.setVehicleId(command.vehicleId());
+        boolean published=route.getStatus()==RouteStatus.PUBLISHED;
+        authorizePublishedEdit(route,command.authorizationHeader());
+        if (published && !Objects.equals(route.getVehicleId(),command.vehicleId()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "A published route cannot change vehicle");
+        route.rename(command.name());
+        route.setShift(command.shift());
+        route.setVehicleId(command.vehicleId());
         route.replaceStops(command.stops());
         route.updateSchedule(command.schedule(),command.scheduleConfirmed());
+        if (published) verifyPublishedAssignments(route,command.authorizationHeader());
         return repository.save(route);
     }
     @Override public Route handle(UpdateRouteScheduleCommand command) {
         Route route=required(command.routeId());
-        requireConfigurable(route);
+        boolean published=route.getStatus()==RouteStatus.PUBLISHED;
+        authorizePublishedEdit(route,command.authorizationHeader());
         route.updateSchedule(command.schedule(),command.confirm());
+        if (published) verifyPublishedAssignments(route,command.authorizationHeader());
         return repository.save(route);
     }
     @Override public RouteAssignment handle(AssignStudentCommand command) {
