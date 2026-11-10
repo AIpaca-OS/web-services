@@ -40,14 +40,26 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
     @Override public RouteAssignment handle(AssignStudentCommand command) {
         Route route=required(command.routeId());
-        if (!studentAuthorization.isAuthorized(command.studentId(),route.getVehicleId()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Student is not authorized");
+        if (route.getAssignments().stream().anyMatch(a -> a.getStudentId().equals(command.studentId())))
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Student is already assigned to this route");
+        if (route.getStops().stream().noneMatch(s -> s.getId().equals(command.stopId())))
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Stop is not part of this route");
+        if (!studentAuthorization.isAuthorized(command.studentId(), route.getVehicleId(), command.authorizationHeader()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Student is not authorized for this driver");
         RouteAssignment assignment=route.assign(command.stopId(),command.studentId());
         repository.save(route);
         return assignment;
     }
     @Override public Route handle(PublishRouteCommand command) {
-        Route route=required(command.routeId());route.publish();return repository.save(route);
+        Route route=required(command.routeId());
+        // Check route completeness before asking Profiles about student permissions.
+        route.validateForPublication();
+        for (RouteAssignment assignment : route.getAssignments()) {
+            if (!studentAuthorization.isAuthorized(assignment.getStudentId(), route.getVehicleId(), command.authorizationHeader()))
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,"A route student is no longer authorized");
+        }
+        route.publish();
+        return repository.save(route);
     }
     @Override public void handle(DeleteRouteCommand command) {
         Route route=required(command.routeId());
