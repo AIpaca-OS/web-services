@@ -65,11 +65,14 @@ public class Route {
             throw new IllegalArgumentException("Student is already assigned to route");
         var a=new RouteAssignment(stopId,studentId);assignments.add(a);return a;
     }
-    public void publish() {
+    public void validateForPublication() {
         if(stops.isEmpty() || !scheduleConfirmed || schedule.isEmpty() || assignments.isEmpty())
             throw new IllegalArgumentException("Publishing requires stops, confirmed schedule and an assigned student");
         if(vehicleId==null || vehicleId.isBlank())
             throw new IllegalArgumentException("Publishing requires a registered vehicle");
+    }
+    public void publish() {
+        validateForPublication();
         status=RouteStatus.PUBLISHED;
     }
     public boolean operatesOn(DayOfWeek day) {return scheduleConfirmed && schedule.stream().anyMatch(s->s.getDayOfWeek()==day);}
