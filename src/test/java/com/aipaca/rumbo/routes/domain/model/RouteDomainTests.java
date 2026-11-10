@@ -56,4 +56,25 @@ class RouteDomainTests {
         assertEquals(TripStatus.CANCELLED,t.getStatus());
         assertThrows(IllegalArgumentException.class,()->t.cancel("again"));
     }
+
+    @Test void routeCannotPublishWithoutVehicle() {
+        var route = validRoute();
+        route.setVehicleId(null);
+        assertThrows(IllegalArgumentException.class, route::publish);
+    }
+
+    @Test void cannotRemoveStopWithAssignedStudent() {
+        var route = validRoute();
+        assertThrows(IllegalArgumentException.class, () -> route.replaceStops(List.of()));
+    }
+
+    @Test void stopsAreStoredInUserDefinedOrder() {
+        var route = new Route("School route", RouteShift.MORNING, "vehicle-1");
+        var first = new RouteStop(UUID.randomUUID(), "First address", 9);
+        var second = new RouteStop(UUID.randomUUID(), "Second address", 2);
+        route.replaceStops(List.of(first, second));
+        assertEquals(1, route.getStops().get(0).getPosition());
+        assertEquals("Second address", route.getStops().get(1).getAddress());
+        assertEquals(2, route.getStops().get(1).getPosition());
+    }
 }
