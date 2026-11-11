@@ -22,7 +22,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     /** Backwards-compatible constructor for plain service tests. */
     public RouteCommandServiceImpl(RouteRepository repository, TripRepository trips,
                                    StudentAuthorizationPort studentAuthorization) {
-        this(repository, trips, studentAuthorization, event -> {});
+        this(repository, trips, studentAuthorization, null);
     }
 
     @Autowired
@@ -106,7 +106,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         }
         route.publish();
         Route saved = repository.save(route);
-        events.publishEvent(new RoutePublishedEvent(saved.getId()));
+        if (events != null) events.publishEvent(new RoutePublishedEvent(saved.getId()));
         return saved;
     }
     @Override public Route handle(ReplaceRouteAssignmentsCommand command) {
