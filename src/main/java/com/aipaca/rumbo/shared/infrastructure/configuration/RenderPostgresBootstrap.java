@@ -15,7 +15,8 @@ public final class RenderPostgresBootstrap {
     public static void configureFromEnvironment() {
         String renderUrl = System.getenv("RENDER_POSTGRES_URL");
         if (renderUrl == null || renderUrl.isBlank() ||
-                System.getenv("SPRING_DATASOURCE_URL") != null) {
+                (System.getenv("SPRING_DATASOURCE_URL") != null &&
+                        !System.getenv("SPRING_DATASOURCE_URL").isBlank())) {
             return;
         }
         configure(renderUrl);
