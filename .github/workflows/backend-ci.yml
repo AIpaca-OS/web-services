@@ -2,9 +2,9 @@ name: Backend CI
 
 on:
   push:
-    branches: [develop]
+    branches: [develop, main]
   pull_request:
-    branches: [develop]
+    branches: [develop, main]
 
 jobs:
   build-and-test:
@@ -46,11 +46,8 @@ jobs:
       - name: Smoke test Render production profile
         env:
           SPRING_PROFILES_ACTIVE: prod
-          DB_HOST: localhost
-          DB_PORT: "5432"
-          DB_NAME: rumbo
-          DB_USER: rumbo
-          DB_PASSWORD: ci_only_password
+          RENDER_POSTGRES_URL: postgresql://rumbo:ci_only_password@localhost:5432/rumbo
+          SPRING_DATASOURCE_URL: ""
           SPRING_JPA_DDL_AUTO: update
           DEPLOYMENT_ACCESS_TOKEN: ci-only-preview-key
         run: |
