@@ -3,31 +3,25 @@ package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entiti
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.AuthorizationStatus;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.RelationshipType;
 import com.aipaca.rumbo.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.time.Instant;
 
-/** Stores a single relationship per tutor-student pair, including its revoked state. */
+/** Child row: persists history; never has a standalone aggregate repository or pair-wide unique constraint. */
 @Getter
 @Setter
 @Entity
-@Table(name = "tutor_student_relationships", uniqueConstraints = @UniqueConstraint(
-        name = "uk_tutor_student_relationships_tutor_student", columnNames = {"tutor_profile_id", "student_id"}))
+@Table(name = "tutor_student_relationships")
 public class TutorStudentRelationshipPersistenceEntity extends AuditableAbstractPersistenceEntity {
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "student_id", nullable = false)
+    private StudentPersistenceEntity student;
+
     @Column(name = "tutor_profile_id", nullable = false)
     private Long tutorProfileId;
 
-    @Column(name = "student_id", nullable = false)
-    private Long studentId;
-
-    @Column(name = "authorized_by_profile_id")
+    @Column(name = "authorized_by_profile_id", nullable = false)
     private Long authorizedByProfileId;
 
     @Enumerated(EnumType.STRING)
@@ -43,7 +37,4 @@ public class TutorStudentRelationshipPersistenceEntity extends AuditableAbstract
 
     @Column(name = "revoked_at")
     private Instant revokedAt;
-
-    public TutorStudentRelationshipPersistenceEntity() {
-    }
 }
