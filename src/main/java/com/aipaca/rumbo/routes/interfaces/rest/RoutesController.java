@@ -60,18 +60,24 @@ public class RoutesController {
         return RouteResourceFromEntityAssembler.view(commands.handle(RouteCommandFromResourceAssembler.toCommand(resource)));
     }
     @PutMapping(value="/{id}",consumes=MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary="Update route",description="Replaces route configuration. Existing stop IDs must be preserved when assignments exist.")
+    @Operation(summary="Update route",description="Updates draft or published route. Published edits require driver authorization; planned trips keep their original snapshots.")
     @RequestBody(content=@Content(examples=@ExampleObject(value="{\"name\":\"Ruta Surco actualizada\",\"shift\":\"MORNING\",\"vehicleId\":\"vehicle-1\",\"stops\":[{\"address\":\"Av. Primavera 123\"}],\"schedule\":[],\"scheduleConfirmed\":false}")))
     @ApiResponses({@ApiResponse(responseCode="200",description="Route updated"),@ApiResponse(responseCode="404",description="Route not found")})
-    public RouteView update(@PathVariable UUID id,@Valid @org.springframework.web.bind.annotation.RequestBody RouteInput resource){
-        return RouteResourceFromEntityAssembler.view(commands.handle(RouteCommandFromResourceAssembler.toCommand(id,resource)));
+    public RouteView update(@PathVariable UUID id,
+            @Valid @org.springframework.web.bind.annotation.RequestBody RouteInput resource,
+            @RequestHeader(value="Authorization",required=false) String authorizationHeader){
+        return RouteResourceFromEntityAssembler.view(commands.handle(
+                RouteCommandFromResourceAssembler.toCommand(id,resource,authorizationHeader)));
     }
     @PutMapping(value="/{id}/schedule",consumes=MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary="Configure weekly schedule",description="Each service day must be unique; time format HH:mm.")
     @RequestBody(content=@Content(examples=@ExampleObject(value="{\"schedule\":[{\"dayOfWeek\":\"MONDAY\",\"departureTime\":\"07:00\"}],\"confirm\":true}")))
     @ApiResponse(responseCode="200",description="Schedule updated")
-    public RouteView schedule(@PathVariable UUID id,@Valid @org.springframework.web.bind.annotation.RequestBody ScheduleUpdate resource){
-        return RouteResourceFromEntityAssembler.view(commands.handle(RouteCommandFromResourceAssembler.toCommand(id,resource)));
+    public RouteView schedule(@PathVariable UUID id,
+            @Valid @org.springframework.web.bind.annotation.RequestBody ScheduleUpdate resource,
+            @RequestHeader(value="Authorization",required=false) String authorizationHeader){
+        return RouteResourceFromEntityAssembler.view(commands.handle(
+                RouteCommandFromResourceAssembler.toCommand(id,resource,authorizationHeader)));
     }
     @GetMapping("/{id}/assignments")
     @Operation(summary="List student assignments to stops")
