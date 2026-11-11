@@ -54,3 +54,5 @@ databases:
     databaseName: rumbo
     user: rumbo
     postgresMajorVersion: "17"
+    # App communicates with PostgreSQL via Render's private network only.
+    ipAllowList: []
