@@ -82,7 +82,7 @@ class TutorJourneyHttpIntegrationTests {
         String routeId=value(route.body(),true);
         status(200,send("PUT","/api/v1/routes/"+routeId+"/assignments","driver",
             "[{\"studentId\":\""+studentId+"\",\"stopId\":\""+stopId+"\"}]"));
-        status(200,send("PATCH","/api/v1/routes/"+routeId+"/status","driver","{\"status\":\"PUBLISHED\""));
+        status(200,send("PATCH","/api/v1/routes/"+routeId+"/status","driver","{\"status\":\"PUBLISHED\"}"));
         var parentRoute=get("/api/v1/tutor/journeys","tutor");
         status(200,parentRoute);
         assertTrue(parentRoute.body().contains(routeId),parentRoute.body());
