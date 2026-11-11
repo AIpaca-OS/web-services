@@ -40,6 +40,13 @@ public class NotificationsController {
     @GetMapping
     @Operation(summary = "List generic local-demo notifications")
     public List<NotificationView> list() { return service.getAll().stream().map(this::view).toList(); }
+    @GetMapping("/{id}")
+    @Operation(summary = "Get generic local-demo notification")
+    public NotificationView get(@PathVariable Long id) { return view(service.get(id)); }
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Delete generic local-demo notification")
+    public void delete(@PathVariable Long id) { service.delete(id); }
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Create a generic demo notification")
