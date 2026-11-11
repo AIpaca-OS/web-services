@@ -10,12 +10,11 @@ import com.aipaca.rumbo.platform.profiles.domain.repositories.ProfileRepository;
 import com.aipaca.rumbo.platform.profiles.domain.repositories.SchoolRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /** Seeds only fictitious profiles and a school for a dedicated LOCAL demo database. */
 @Component
-@Profile("local")
+@org.springframework.context.annotation.Profile("local")
 @ConditionalOnProperty(prefix="app.profiles.demo",name="enabled",havingValue="true")
 public class LocalDemoProfilesSeeder implements CommandLineRunner {
     private final ProfileRepository profiles;
