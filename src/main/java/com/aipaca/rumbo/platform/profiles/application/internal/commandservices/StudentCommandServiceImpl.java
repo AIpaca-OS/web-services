@@ -1,10 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.commandservices;
 import com.aipaca.rumbo.platform.profiles.application.commandservices.StudentCommandService;
 import com.aipaca.rumbo.platform.profiles.application.internal.ProfilesResults;
-import com.aipaca.rumbo.platform.profiles.application.events.ProfilesEventPublisher;
-import com.aipaca.rumbo.platform.profiles.domain.model.events.TutorAuthorized;
-import com.aipaca.rumbo.platform.profiles.domain.model.events.TutorAuthorizationRevoked;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAuthorization;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ProfileType;
@@ -20,12 +17,11 @@ public class StudentCommandServiceImpl implements StudentCommandService {
     private final SchoolRepository schools;
     private final ProfileRepository profiles;
     private final ProfilesAuthorization authorization;
-    private final ProfilesEventPublisher events;
 
     public StudentCommandServiceImpl(StudentRepository students,SchoolRepository schools,
-            ProfileRepository profiles, ProfilesAuthorization authorization, ProfilesEventPublisher events) {
+            ProfileRepository profiles, ProfilesAuthorization authorization) {
         this.students=students;this.schools=schools;this.profiles=profiles;
-        this.authorization=authorization;this.events=events;
+        this.authorization=authorization;
     }
     private boolean schoolMissing(Long schoolId) { return schoolId != null && schools.findById(schoolId).isEmpty(); }
 
@@ -41,7 +37,6 @@ public class StudentCommandServiceImpl implements StudentCommandService {
         var firstRelationship=saved.getTutorRelationships().stream()
                 .filter(r -> r.isAuthorized() && r.getTutorProfileId().equals(tutor.getId()))
                 .findFirst().orElseThrow(() -> new IllegalStateException("Initial tutor authorization missing"));
-        events.publishAfterCommit(new TutorAuthorized(saved.getId(), tutor.getId(), firstRelationship.getAuthorizedAt()));
         return Result.success(saved.getId());
     }
 
@@ -68,7 +63,6 @@ public class StudentCommandServiceImpl implements StudentCommandService {
         try { student.authorizeTutor(command.tutorProfileId(), command.relationshipType(), me.getId(), now); }
         catch (IllegalStateException ex) { return ProfilesResults.domainFailure(ex); }
         var saved=students.save(student);
-        events.publishAfterCommit(new TutorAuthorized(saved.getId(),command.tutorProfileId(),now));
         return Result.success(saved.getId());
     }
 
@@ -82,7 +76,6 @@ public class StudentCommandServiceImpl implements StudentCommandService {
         try { student.revokeTutor(command.tutorProfileId(),me.getId(),now); }
         catch (IllegalStateException ex) { return ProfilesResults.domainFailure(ex); }
         var saved=students.save(student);
-        events.publishAfterCommit(new TutorAuthorizationRevoked(saved.getId(),command.tutorProfileId(),now));
         return Result.success(saved.getId());
     }
 }

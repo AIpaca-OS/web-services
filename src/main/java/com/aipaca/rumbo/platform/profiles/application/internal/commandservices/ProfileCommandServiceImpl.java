@@ -1,7 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.commandservices;
 import com.aipaca.rumbo.platform.profiles.application.commandservices.ProfileCommandService;
 import com.aipaca.rumbo.platform.profiles.application.internal.ProfilesResults;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAuthorization;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.Profile;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.AccountId;

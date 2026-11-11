@@ -1,7 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.commandservices;
 import com.aipaca.rumbo.platform.profiles.application.commandservices.ServiceEnrollmentCommandService;
 import com.aipaca.rumbo.platform.profiles.application.internal.ProfilesResults;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAuthorization;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ProfileType;
 import com.aipaca.rumbo.platform.profiles.domain.repositories.*;
@@ -73,10 +73,10 @@ public class ServiceEnrollmentCommandServiceImpl implements ServiceEnrollmentCom
         var enrollment=opt.get();
         if (me.getProfileType()==ProfileType.DRIVER) {
             if (!me.getId().equals(enrollment.getDriverProfileId()))
-                throw new com.aipaca.rumbo.platform.profiles.application.security.ProfilesAccessException("Enrollment is not accessible", false);
+                throw new com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAccessException("Enrollment is not accessible", false);
         } else if (me.getProfileType()==ProfileType.TUTOR) {
             auth.requireStudentAccess(enrollment.getStudentId());
-        } else throw new com.aipaca.rumbo.platform.profiles.application.security.ProfilesAccessException("Actor not eligible", false);
+        } else throw new com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAccessException("Actor not eligible", false);
         try { enrollment.end(Instant.now()); }
         catch (IllegalStateException ex) { return ProfilesResults.domainFailure(ex); }
         return Result.success(enrollments.save(enrollment).getId());
