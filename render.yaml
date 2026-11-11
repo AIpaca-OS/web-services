@@ -1,0 +1,56 @@
+# Rumbo OS AV2 - public API preview on Render, not a production-ready IAM setup.
+# IMPORTANT: do not store real student/guardian data until JWT + RBAC exist.
+services:
+  - type: web
+    name: rumbo-os-backend
+    runtime: docker
+    repo: https://github.com/AIpaca-OS/web-services
+    branch: develop
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      # Bootstrap an EMPTY course-preview Postgres instance with Hibernate.
+      # Change to "validate" after the initial schema is created.
+      - key: SPRING_JPA_DDL_AUTO
+        value: update
+      - key: APP_DEMO_ENABLED
+        value: "false"
+      - key: APP_PROFILES_DEMO_ENABLED
+        value: "false"
+      - key: PROFILES_AUTHORIZATION_ENABLED
+        value: "false"
+      # Restricts private REST endpoints until IAM is implemented.
+      # Obtain the generated key from Render's environment settings for Postman.
+      - key: DEPLOYMENT_ACCESS_TOKEN
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: rumbo-os-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: rumbo-os-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: rumbo-os-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: rumbo-os-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: rumbo-os-db
+          property: password
+
+databases:
+  - name: rumbo-os-db
+    plan: free
+    databaseName: rumbo
+    user: rumbo
+    postgresMajorVersion: "17"
