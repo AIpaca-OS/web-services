@@ -1,16 +1,19 @@
-﻿# Rumbo — Web Services
+# Rumbo — Web Services
 
-Backend del proyecto Rumbo — AIpaca-OS.
+Backend del producto Rumbo, desarrollado por AIpaca-OS.
 
 ## Tecnologías
-- Java 21
+- Java
 - Spring Boot
 - Spring Data JPA
 - PostgreSQL
-- Swagger / OpenAPI
+- OpenAPI / Swagger
 
 ## Bounded Contexts
-- Routes — Leo
-- Students — Alejandro
-- Billing — Kevin
-- Notifications — Alexandra
+- Route & Trip Planning
+- Students
+- Subscriptions & Billing
+- Notifications
+
+## Organización
+Repositorio compartido para el curso Desarrollo de Aplicaciones Open Source — UPC.
