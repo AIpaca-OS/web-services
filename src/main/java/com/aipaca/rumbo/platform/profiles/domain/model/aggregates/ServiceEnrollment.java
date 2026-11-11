@@ -14,7 +14,7 @@ import java.util.Objects;
  * <p>Protects local state and date consistency. Actor authorization and conflicts
  * with other enrollments must be checked by application services.</p>
  * <p>The lifecycle is PENDING -> ACCEPTED -> ENDED. A student-driver pair may have
- * at most one PENDING or ACCEPTED enrollment. Application services must authorize
+ * at most one PENDING or ACCEPTED enrollment. PENDING may also become CANCELLED. Application services must authorize
  * ending an accepted enrollment for either a currently authorized tutor of the
  * student or the driver referenced by this enrollment.</p>
  */
@@ -23,6 +23,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
     public static final String PENDING = "PENDING";
     public static final String ACCEPTED = "ACCEPTED";
     public static final String ENDED = "ENDED";
+    public static final String CANCELLED = "CANCELLED";
 
     private Long id;
     private Long studentId;
@@ -33,6 +34,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
 
     private Instant requestedAt;
     private Instant acceptedAt;
+    private Instant cancelledAt;
     private Instant endedAt;
 
     // Constructor principal
@@ -44,6 +46,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
             String status,
             Instant requestedAt,
             Instant acceptedAt,
+            Instant cancelledAt,
             Instant endedAt
     ) {
         if (id != null) {
@@ -68,6 +71,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
         );
 
         this.acceptedAt = acceptedAt;
+        this.cancelledAt = cancelledAt;
         this.endedAt = endedAt;
 
         validateState();
@@ -93,6 +97,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
                 PENDING,
                 requestedAt,
                 null,
+                null,
                 null
         );
     }
@@ -106,6 +111,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
             String status,
             Instant requestedAt,
             Instant acceptedAt,
+            Instant cancelledAt,
             Instant endedAt
     ) {
         validateId(id, "Enrollment");
@@ -118,8 +124,27 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
                 status,
                 requestedAt,
                 acceptedAt,
+                cancelledAt,
                 endedAt
         );
+    }
+
+    /** Legacy reconstitution without a cancellation date. */
+    public static ServiceEnrollment reconstitute(Long id, Long studentId, Long driverProfileId,
+            Long requestedByProfileId, String status, Instant requestedAt, Instant acceptedAt, Instant endedAt) {
+        return reconstitute(id, studentId, driverProfileId, requestedByProfileId,
+                status, requestedAt, acceptedAt, null, endedAt);
+    }
+
+    /** A pending request may only be cancelled by the profile that requested it. */
+    public void cancel(Long by, Instant at) {
+        validateId(by, "Cancelling actor");
+        Objects.requireNonNull(at, "Cancellation date is required");
+        if (!PENDING.equals(status)) throw new IllegalStateException("Only pending enrollments can be cancelled");
+        if (!requestedByProfileId.equals(by)) throw new IllegalStateException("Only requester can cancel enrollment");
+        if (at.isBefore(requestedAt)) throw new IllegalArgumentException("Cancellation cannot precede request");
+        status = CANCELLED;
+        cancelledAt = at;
     }
 
     // Aceptar una afiliación pendiente
@@ -177,7 +202,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
         switch (this.status) {
 
             case PENDING -> {
-                if (acceptedAt != null || endedAt != null) {
+                if (acceptedAt != null || cancelledAt != null || endedAt != null) {
                     throw new IllegalArgumentException(
                             "Pending enrollment cannot have acceptance or end dates"
                     );
@@ -185,7 +210,7 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
             }
 
             case ACCEPTED -> {
-                if (acceptedAt == null || endedAt != null) {
+                if (acceptedAt == null || cancelledAt != null || endedAt != null) {
                     throw new IllegalArgumentException(
                             "Accepted enrollment requires acceptance date and no end date"
                     );
@@ -193,16 +218,26 @@ public class ServiceEnrollment extends AbstractDomainAggregateRoot<ServiceEnroll
             }
 
             case ENDED -> {
-                if (acceptedAt == null || endedAt == null) {
+                if (acceptedAt == null || cancelledAt != null || endedAt == null) {
                     throw new IllegalArgumentException(
                             "Ended enrollment requires acceptance and end dates"
                     );
                 }
             }
 
+            case CANCELLED -> {
+                if (acceptedAt != null || cancelledAt == null || endedAt != null) {
+                    throw new IllegalArgumentException("Cancelled enrollment needs cancellation date only");
+                }
+            }
+
             default -> throw new IllegalArgumentException(
                     "Invalid enrollment status"
             );
+        }
+
+        if (cancelledAt != null && cancelledAt.isBefore(requestedAt)) {
+            throw new IllegalArgumentException("Cancellation cannot precede request");
         }
 
         if (acceptedAt != null &&
