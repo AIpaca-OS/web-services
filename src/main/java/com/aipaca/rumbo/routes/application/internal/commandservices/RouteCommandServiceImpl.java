@@ -98,6 +98,8 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
     @Override public Route handle(PublishRouteCommand command) {
         Route route=required(command.routeId());
+        if (route.getStatus() == RouteStatus.PUBLISHED)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Route has already been published");
         // Check route completeness before asking Profiles about student permissions.
         route.validateForPublication();
         for (RouteAssignment assignment : route.getAssignments()) {
