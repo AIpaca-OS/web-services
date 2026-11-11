@@ -1,10 +1,11 @@
 package com.aipaca.rumbo.platform.profiles.domain.model.queries;
 
-public record GetTutorStudentRelationshipByTutorIdAndStudentIdQuery(
+/** Gets the current authorized relationship; revoked history may contain older records for the same pair. */
+public record GetActiveTutorStudentRelationshipByTutorIdAndStudentIdQuery(
         Long tutorId,
         Long studentId
 ) {
-    public GetTutorStudentRelationshipByTutorIdAndStudentIdQuery {
+    public GetActiveTutorStudentRelationshipByTutorIdAndStudentIdQuery {
         if (tutorId == null || tutorId < 1) {
             throw new IllegalArgumentException(
                     "Tutor id cannot be null or less than 1"
