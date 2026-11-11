@@ -75,6 +75,3 @@ public record ApplicationError(
     }
 }
 
-
-
-
