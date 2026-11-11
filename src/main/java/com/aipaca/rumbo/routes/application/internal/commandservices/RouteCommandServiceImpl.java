@@ -2,9 +2,12 @@ package com.aipaca.rumbo.routes.application.internal.commandservices;
 import com.aipaca.rumbo.routes.application.commandservices.RouteCommandService;
 import com.aipaca.rumbo.routes.application.ports.StudentAuthorizationPort;
 import com.aipaca.rumbo.routes.domain.model.*;
+import com.aipaca.rumbo.routes.domain.events.RoutePublishedEvent;
 import com.aipaca.rumbo.routes.domain.model.commands.*;
 import com.aipaca.rumbo.routes.domain.repositories.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,8 +17,20 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     private final RouteRepository repository;
     private final TripRepository trips;
     private final StudentAuthorizationPort studentAuthorization;
-    public RouteCommandServiceImpl(RouteRepository repository, TripRepository trips, StudentAuthorizationPort studentAuthorization) {
-        this.repository=repository; this.trips=trips; this.studentAuthorization=studentAuthorization;
+    private final ApplicationEventPublisher events;
+
+    /** Backwards-compatible constructor for plain service tests. */
+    public RouteCommandServiceImpl(RouteRepository repository, TripRepository trips,
+                                   StudentAuthorizationPort studentAuthorization) {
+        this(repository, trips, studentAuthorization, null);
+    }
+
+    @Autowired
+    public RouteCommandServiceImpl(RouteRepository repository, TripRepository trips,
+                                   StudentAuthorizationPort studentAuthorization,
+                                   ApplicationEventPublisher events) {
+        this.repository=repository; this.trips=trips;
+        this.studentAuthorization=studentAuthorization; this.events=events;
     }
     private Route required(UUID id) {
         return repository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Route not found"));
@@ -90,7 +105,9 @@ public class RouteCommandServiceImpl implements RouteCommandService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,"A route student is no longer authorized");
         }
         route.publish();
-        return repository.save(route);
+        Route saved = repository.save(route);
+        if (events != null) events.publishEvent(new RoutePublishedEvent(saved.getId()));
+        return saved;
     }
     @Override public Route handle(ReplaceRouteAssignmentsCommand command) {
         Route route = required(command.routeId());

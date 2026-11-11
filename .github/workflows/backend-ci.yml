@@ -37,8 +37,6 @@ jobs:
           distribution: temurin
           java-version: '27'
           cache: maven
-      - name: Generate an ephemeral signing secret
-        run: echo "JWT_SECRET=$(openssl rand -base64 32)" >> "$GITHUB_ENV"
       - name: Test and package
         run: |
           chmod +x ./mvnw
