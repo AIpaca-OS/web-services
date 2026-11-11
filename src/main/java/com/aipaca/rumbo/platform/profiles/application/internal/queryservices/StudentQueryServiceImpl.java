@@ -1,7 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.queryservices;
 import com.aipaca.rumbo.platform.profiles.application.queryservices.StudentQueryService;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAuthorization;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAccessException;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAccessException;
 import com.aipaca.rumbo.platform.profiles.domain.repositories.StudentRepository;
 import com.aipaca.rumbo.platform.profiles.domain.model.queries.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.*;

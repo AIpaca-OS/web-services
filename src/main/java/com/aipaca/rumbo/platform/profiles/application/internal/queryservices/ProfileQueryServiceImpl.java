@@ -1,6 +1,6 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.queryservices;
 import com.aipaca.rumbo.platform.profiles.application.queryservices.ProfileQueryService;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAuthorization;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
 import com.aipaca.rumbo.platform.profiles.domain.repositories.ProfileRepository;
 import com.aipaca.rumbo.platform.profiles.domain.model.queries.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.Profile;
@@ -23,7 +23,7 @@ public class ProfileQueryServiceImpl implements ProfileQueryService {
     }
     @Override public Optional<Profile> handle(GetProfileByAccountIdQuery query) {
         if (!auth.currentAccountId().equals(query.accountId()))
-            throw new com.aipaca.rumbo.platform.profiles.application.security.ProfilesAccessException("Account not accessible",false);
+            throw new com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAccessException("Account not accessible",false);
         return profiles.findByAccountId(new AccountId(query.accountId()));
     }
 }
