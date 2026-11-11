@@ -53,4 +53,13 @@ class LocalProfilesHttpSmokeTests {
         assertEquals(200,response.statusCode(),response.body());
         assertTrue(response.body().startsWith("["));
     }
+
+    @Test void seededDriverCatalogIsVisibleOnlyToLocalTutor() throws Exception {
+        var tutor = get("/api/v1/local-demo/drivers", "tutor");
+        assertEquals(200, tutor.statusCode(), tutor.body());
+        assertTrue(tutor.body().contains("Conductor de demostración"));
+
+        var driver = get("/api/v1/local-demo/drivers", "driver");
+        assertEquals(403, driver.statusCode(), driver.body());
+    }
 }
