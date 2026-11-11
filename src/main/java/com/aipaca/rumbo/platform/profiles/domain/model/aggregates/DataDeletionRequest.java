@@ -99,6 +99,14 @@ public class DataDeletionRequest extends AbstractDomainAggregateRoot<DataDeletio
         this.resolvedAt = at;
     }
 
+    public void approve(String note, Instant at) {
+        resolve(DeletionRequestStatus.APPROVED, note, at);
+    }
+
+    public void reject(String note, Instant at) {
+        resolve(DeletionRequestStatus.REJECTED, note, at);
+    }
+
     private static void validateResolution(
             DeletionRequestStatus status, String note, Instant requestedAt, Instant resolvedAt
     ) {
