@@ -11,10 +11,16 @@ public final class RouteCommandFromResourceAssembler {
         return new CreateRouteCommand(r.name(),r.shift(),r.vehicleId(),stops(r.stops()),schedule(r.schedule()),Boolean.TRUE.equals(r.scheduleConfirmed()));
     }
     public static UpdateRouteCommand toCommand(UUID id,RouteInput r) {
-        return new UpdateRouteCommand(id,r.name(),r.shift(),r.vehicleId(),stops(r.stops()),schedule(r.schedule()),Boolean.TRUE.equals(r.scheduleConfirmed()));
+        return toCommand(id, r, null);
+    }
+    public static UpdateRouteCommand toCommand(UUID id, RouteInput r, String authorizationHeader) {
+        return new UpdateRouteCommand(id,r.name(),r.shift(),r.vehicleId(),stops(r.stops()),schedule(r.schedule()),Boolean.TRUE.equals(r.scheduleConfirmed()),authorizationHeader);
     }
     public static UpdateRouteScheduleCommand toCommand(UUID id,ScheduleUpdate resource) {
-        return new UpdateRouteScheduleCommand(id,schedule(resource.schedule()),resource.confirm());
+        return toCommand(id, resource, null);
+    }
+    public static UpdateRouteScheduleCommand toCommand(UUID id,ScheduleUpdate resource,String authorizationHeader) {
+        return new UpdateRouteScheduleCommand(id,schedule(resource.schedule()),resource.confirm(),authorizationHeader);
     }
     private static List<RouteStop> stops(List<StopInput> resources) {
         if(resources==null)return List.of();

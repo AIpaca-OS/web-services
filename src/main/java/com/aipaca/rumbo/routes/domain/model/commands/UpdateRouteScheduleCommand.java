@@ -1,6 +1,13 @@
 package com.aipaca.rumbo.routes.domain.model.commands;
-    import com.aipaca.rumbo.routes.domain.model.*;
-import java.util.*;
-import java.time.*;
-    /** Domain intent. Validation and business rules live in the aggregate. */
-    public record UpdateRouteScheduleCommand(UUID routeId, List<RouteSchedule> schedule, boolean confirm) {}
+
+import com.aipaca.rumbo.routes.domain.model.RouteSchedule;
+import java.util.List;
+import java.util.UUID;
+
+/** Change a weekly schedule; published routes require verified driver access. */
+public record UpdateRouteScheduleCommand(
+        UUID routeId, List<RouteSchedule> schedule, boolean confirm, String authorizationHeader) {
+    public UpdateRouteScheduleCommand(UUID routeId, List<RouteSchedule> schedule, boolean confirm) {
+        this(routeId, schedule, confirm, null);
+    }
+}

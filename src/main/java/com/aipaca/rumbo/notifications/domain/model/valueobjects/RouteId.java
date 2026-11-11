@@ -1,10 +1,10 @@
 package com.aipaca.rumbo.notifications.domain.model.valueobjects;
-import org.jspecify.annotations.NullMarked;
 
-@NullMarked
-public record RouteId(Long courseId) {
+import java.util.UUID;
 
+/** Routes identifies routes using UUIDs, not course IDs. */
+public record RouteId(UUID routeId) {
     public RouteId {
-        if (courseId == null || courseId < 1) throw new IllegalArgumentException("Course cannot be null or less than 1");
+        if (routeId == null) throw new IllegalArgumentException("Route UUID required");
     }
 }
