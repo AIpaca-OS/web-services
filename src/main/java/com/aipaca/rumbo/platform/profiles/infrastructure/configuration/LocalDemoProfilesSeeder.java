@@ -1,6 +1,5 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.configuration;
 
-import com.aipaca.rumbo.platform.profiles.application.internal.access.LocalDemoActorIdentity;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.Profile;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.School;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.CreateProfileCommand;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 /** Seeds only fictitious profiles and a school for a dedicated LOCAL demo database. */
 @Component
-@org.springframework.context.annotation.Profile("local")
+@org.springframework.context.annotation.Profile("dev")
 @ConditionalOnProperty(prefix="app.profiles.demo",name="enabled",havingValue="true")
 public class LocalDemoProfilesSeeder implements CommandLineRunner {
     private final ProfileRepository profiles;
@@ -23,9 +22,9 @@ public class LocalDemoProfilesSeeder implements CommandLineRunner {
         this.profiles=profiles;this.schools=schools;
     }
     @Override public void run(String... args) {
-        addProfile(LocalDemoActorIdentity.TUTOR_ACCOUNT_ID,ProfileType.TUTOR,
+        addProfile(10001L,ProfileType.TUTOR,
                 "Tutor","Demo","900000001");
-        addProfile(LocalDemoActorIdentity.DRIVER_ACCOUNT_ID,ProfileType.DRIVER,
+        addProfile(10002L,ProfileType.DRIVER,
                 "Conductor","Demo","900000002");
         if (schools.findAll().stream().noneMatch(s -> "Colegio Demostración".equals(s.getName()))) {
             schools.save(new School("Colegio Demostración","Av. Demo 123","Lima"));

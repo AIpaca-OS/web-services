@@ -5,7 +5,8 @@ import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entitie
 
 /** Translates stored request state without automatically approving or anonymizing a student. */
 public final class DataDeletionRequestPersistenceAssembler {
-    private DataDeletionRequestPersistenceAssembler() { }
+    private DataDeletionRequestPersistenceAssembler() {
+    }
 
     public static DataDeletionRequest toDomainFromPersistence(DataDeletionRequestPersistenceEntity entity) {
         if (entity == null) return null;

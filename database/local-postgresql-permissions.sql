@@ -42,5 +42,6 @@ SELECT t.table_name,
 FROM information_schema.tables AS t
 WHERE t.table_schema = 'public'
   AND t.table_type = 'BASE TABLE'
-  AND t.table_name IN ('notifications', 'plans', 'subscriptions', 'vc_vehicles')
+  AND t.table_name IN ('notifications', 'plans', 'subscriptions', 'vehicles', 'routes', 'trips',
+                       'incidents', 'incident_acknowledgements', 'delays')
 ORDER BY t.table_name;

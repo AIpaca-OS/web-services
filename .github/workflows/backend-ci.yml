@@ -27,7 +27,6 @@ jobs:
       SPRING_DATASOURCE_USERNAME: rumbo
       SPRING_DATASOURCE_PASSWORD: ci_only_password
       SPRING_JPA_DDL_AUTO: update
-      PROFILES_AUTHORIZATION_ENABLED: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,13 +45,13 @@ jobs:
       - name: Smoke test Render production profile
         env:
           SPRING_PROFILES_ACTIVE: prod
-          DB_HOST: localhost
-          DB_PORT: "5432"
-          DB_NAME: rumbo
-          DB_USER: rumbo
-          DB_PASSWORD: ci_only_password
+          DEPLOYMENT_ACCESS_TOKEN: ci_preview_only
+          DATABASE_URL: localhost
+          DATABASE_PORT: "5432"
+          DATABASE_NAME: rumbo
+          DATABASE_USER: rumbo
+          DATABASE_PASSWORD: ci_only_password
           SPRING_JPA_DDL_AUTO: update
-          DEPLOYMENT_ACCESS_TOKEN: ci-only-preview-key
         run: |
           java -jar target/rumbo-web-services-0.0.1-SNAPSHOT.jar > /tmp/rumbo-prod.log 2>&1 &
           APP_PID=$!
@@ -65,4 +64,5 @@ jobs:
           curl -fsS http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'
           curl -fsS http://127.0.0.1:8080/api/v1/plans > /dev/null
           test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/v1/routes)" = "401"
-          test "$(curl -sS -o /dev/null -w '%{http_code}' -H 'X-Rumbo-Preview-Key: ci-only-preview-key' http://127.0.0.1:8080/api/v1/routes)" = "200"
+          curl -fsS -H "X-Rumbo-Preview-Key: $DEPLOYMENT_ACCESS_TOKEN" http://127.0.0.1:8080/api/v1/vehicles > /dev/null
+          curl -fsS -D - -o /dev/null -H "Origin: http://localhost:4200" http://127.0.0.1:8080/api/v1/plans | grep -qi "access-control-allow-origin: http://localhost:4200"

@@ -1,8 +1,11 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities;
 
+import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ServiceEnrollmentStatus;
 import com.aipaca.rumbo.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,8 +34,9 @@ public class ServiceEnrollmentPersistenceEntity extends AuditableAbstractPersist
     @Column(name = "requested_by_profile_id", nullable = false)
     private Long requestedByProfileId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 10)
-    private String status;
+    private ServiceEnrollmentStatus status;
 
     @Column(name = "requested_at", nullable = false)
     private Instant requestedAt;

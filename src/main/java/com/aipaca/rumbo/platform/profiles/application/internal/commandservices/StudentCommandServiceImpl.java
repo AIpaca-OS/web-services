@@ -1,81 +1,141 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.commandservices;
+
 import com.aipaca.rumbo.platform.profiles.application.commandservices.StudentCommandService;
-import com.aipaca.rumbo.platform.profiles.application.internal.ProfilesResults;
-import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
-import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.*;
-import com.aipaca.rumbo.platform.profiles.domain.model.commands.*;
+import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.Student;
+import com.aipaca.rumbo.platform.profiles.domain.model.commands.AuthorizeTutorStudentRelationshipCommand;
+import com.aipaca.rumbo.platform.profiles.domain.model.commands.RegisterStudentCommand;
+import com.aipaca.rumbo.platform.profiles.domain.model.commands.RevokeTutorStudentRelationshipCommand;
+import com.aipaca.rumbo.platform.profiles.domain.model.commands.UpdateStudentInformationCommand;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ProfileType;
-import com.aipaca.rumbo.platform.profiles.domain.repositories.*;
+import com.aipaca.rumbo.platform.profiles.domain.repositories.ProfileRepository;
+import com.aipaca.rumbo.platform.profiles.domain.repositories.SchoolRepository;
+import com.aipaca.rumbo.platform.profiles.domain.repositories.StudentRepository;
 import com.aipaca.rumbo.platform.shared.application.result.ApplicationError;
 import com.aipaca.rumbo.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
+/**
+ * Student Command Service Implementation
+ */
 @Service
+@Transactional
 public class StudentCommandServiceImpl implements StudentCommandService {
-    private final StudentRepository students;
-    private final SchoolRepository schools;
-    private final ProfileRepository profiles;
-    private final ProfilesAuthorization authorization;
+    private final StudentRepository studentRepository;
+    private final SchoolRepository schoolRepository;
+    private final ProfileRepository profileRepository;
 
-    public StudentCommandServiceImpl(StudentRepository students,SchoolRepository schools,
-            ProfileRepository profiles, ProfilesAuthorization authorization) {
-        this.students=students;this.schools=schools;this.profiles=profiles;
-        this.authorization=authorization;
-    }
-    private boolean schoolMissing(Long schoolId) { return schoolId != null && schools.findById(schoolId).isEmpty(); }
-
-    @Override @Transactional
-    public Result<Long,ApplicationError> handle(RegisterStudentCommand command) {
-        var tutor=authorization.currentTutor();
-        if (!tutor.getId().equals(command.tutorProfileId()))
-            return ProfilesResults.conflict("STUDENT", "Registering tutor must be the authenticated tutor");
-        if (schoolMissing(command.schoolId())) return ProfilesResults.notFound("SCHOOL", command.schoolId());
-        // Student itself creates its first AUTHORIZED child relationship (US06).
-        var student=new Student(command);
-        var saved=students.save(student);
-        var firstRelationship=saved.getTutorRelationships().stream()
-                .filter(r -> r.isAuthorized() && r.getTutorProfileId().equals(tutor.getId()))
-                .findFirst().orElseThrow(() -> new IllegalStateException("Initial tutor authorization missing"));
-        return Result.success(saved.getId());
+    /**
+     * Constructor
+     *
+     * @param studentRepository The {@link StudentRepository} instance
+     * @param schoolRepository  The {@link SchoolRepository} instance
+     * @param profileRepository The {@link ProfileRepository} instance
+     */
+    public StudentCommandServiceImpl(StudentRepository studentRepository, SchoolRepository schoolRepository,
+                                     ProfileRepository profileRepository) {
+        this.studentRepository = studentRepository;
+        this.schoolRepository = schoolRepository;
+        this.profileRepository = profileRepository;
     }
 
-    @Override @Transactional
-    public Result<Long,ApplicationError> handle(UpdateStudentInformationCommand command) {
-        var student=authorization.requireStudentAccess(command.studentId());
-        if (schoolMissing(command.schoolId())) return ProfilesResults.notFound("SCHOOL", command.schoolId());
-        try { student.updateInformation(command.firstName(), command.lastName(), command.birthDate(), command.schoolId()); }
-        catch (IllegalStateException ex) { return ProfilesResults.domainFailure(ex); }
-        return Result.success(students.save(student).getId());
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(RegisterStudentCommand command) {
+        if (!isTutor(command.tutorProfileId())) {
+            return Result.failure(ApplicationError.validationError("tutorProfileId", "Existing TUTOR profile required"));
+        }
+        if (isSchoolMissing(command.schoolId())) {
+            return Result.failure(ApplicationError.notFound("School", String.valueOf(command.schoolId())));
+        }
+        try {
+            var savedStudent = studentRepository.save(new Student(command));
+            return Result.success(savedStudent.getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Student", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("register-student", e.getMessage()));
+        }
     }
 
-    @Override @Transactional
-    public Result<Long,ApplicationError> handle(AuthorizeTutorStudentRelationshipCommand command) {
-        var me=authorization.currentTutor();
-        if (!me.getId().equals(command.authorizedByProfileId()))
-            return ProfilesResults.conflict("RELATIONSHIP","Authorizer must be the authenticated tutor");
-        var student=authorization.requireStudentAccess(command.studentId());
-        var target=profiles.findById(command.tutorProfileId());
-        if (target.isEmpty()) return ProfilesResults.notFound("PROFILE",command.tutorProfileId());
-        if (target.get().getProfileType()!=ProfileType.TUTOR)
-            return ProfilesResults.invalid("Tutor", "Target profile must have TUTOR type");
-        var now=java.time.Instant.now();
-        try { student.authorizeTutor(command.tutorProfileId(), command.relationshipType(), me.getId(), now); }
-        catch (IllegalStateException ex) { return ProfilesResults.domainFailure(ex); }
-        var saved=students.save(student);
-        return Result.success(saved.getId());
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(UpdateStudentInformationCommand command) {
+        var result = studentRepository.findById(command.studentId());
+        if (result.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Student", command.studentId().toString()));
+        }
+        if (isSchoolMissing(command.schoolId())) {
+            return Result.failure(ApplicationError.notFound("School", String.valueOf(command.schoolId())));
+        }
+        var student = result.get();
+        try {
+            student.updateInformation(command.firstName(), command.lastName(), command.birthDate(), command.schoolId());
+            return Result.success(studentRepository.save(student).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Student", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Student update", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("update-student", e.getMessage()));
+        }
     }
 
-    @Override @Transactional
-    public Result<Long,ApplicationError> handle(RevokeTutorStudentRelationshipCommand command) {
-        var me=authorization.currentTutor();
-        if (!me.getId().equals(command.requestedByProfileId()))
-            return ProfilesResults.conflict("RELATIONSHIP","Revoker must be the authenticated tutor");
-        var student=authorization.requireStudentAccess(command.studentId());
-        var now=java.time.Instant.now();
-        try { student.revokeTutor(command.tutorProfileId(),me.getId(),now); }
-        catch (IllegalStateException ex) { return ProfilesResults.domainFailure(ex); }
-        var saved=students.save(student);
-        return Result.success(saved.getId());
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(AuthorizeTutorStudentRelationshipCommand command) {
+        var result = studentRepository.findById(command.studentId());
+        if (result.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Student", command.studentId().toString()));
+        }
+        if (!isTutor(command.authorizedByProfileId()) || !isTutor(command.tutorProfileId())) {
+            return Result.failure(ApplicationError.validationError("Tutor", "Both the authorizer and target must be TUTOR profiles"));
+        }
+        var student = result.get();
+        try {
+            // The Student aggregate requires an already authorized tutor to add another one.
+            student.authorizeTutor(command.tutorProfileId(), command.relationshipType(),
+                    command.authorizedByProfileId(), Instant.now());
+            return Result.success(studentRepository.save(student).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Tutor authorization", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Tutor authorization", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("authorize-tutor", e.getMessage()));
+        }
+    }
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(RevokeTutorStudentRelationshipCommand command) {
+        var result = studentRepository.findById(command.studentId());
+        if (result.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Student", command.studentId().toString()));
+        }
+        var student = result.get();
+        try {
+            // The Student aggregate forbids a revocation by a non-authorized tutor or of the last tutor.
+            student.revokeTutor(command.tutorProfileId(), command.requestedByProfileId(), Instant.now());
+            return Result.success(studentRepository.save(student).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Tutor revocation", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Tutor revocation", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("revoke-tutor", e.getMessage()));
+        }
+    }
+
+    private boolean isSchoolMissing(Long schoolId) {
+        return schoolId != null && schoolRepository.findById(schoolId).isEmpty();
+    }
+
+    private boolean isTutor(Long profileId) {
+        return profileRepository.findById(profileId)
+                .filter(profile -> profile.getProfileType() == ProfileType.TUTOR)
+                .isPresent();
     }
 }

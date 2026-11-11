@@ -1,7 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.domain.model;
 
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.Student;
-import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.TutorStudentRelationship;
+import com.aipaca.rumbo.platform.profiles.domain.model.entities.TutorStudentRelationship;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.RegisterStudentCommand;
 import com.aipaca.rumbo.platform.profiles.domain.model.queries.GetProfileByAccountIdQuery;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.AuthorizationStatus;

@@ -1,6 +1,8 @@
 package com.aipaca.rumbo.platform.billing.infrastructure.persistence.jpa.entities;
 
+import com.aipaca.rumbo.platform.billing.domain.model.valueobjects.DriverProfileId;
 import com.aipaca.rumbo.platform.billing.domain.model.valueobjects.SubscriptionStatus;
+import com.aipaca.rumbo.platform.billing.infrastructure.persistence.jpa.converters.DriverProfileIdPersistenceConverter;
 import com.aipaca.rumbo.platform.shared.infrastructure.persistence.jpa.entities.AuditableAbstractPersistenceEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -16,8 +18,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class SubscriptionPersistenceEntity extends AuditableAbstractPersistenceEntity {
 
+    @Convert(converter = DriverProfileIdPersistenceConverter.class)
     @Column(name = "driver_id", nullable = false)
-    private Long driverId;
+    private DriverProfileId driverProfileId;
 
     @Column(name = "plan_id", nullable = false)
     private Long planId;

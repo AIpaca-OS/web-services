@@ -1,33 +1,42 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.queryservices;
+
 import com.aipaca.rumbo.platform.profiles.application.queryservices.DataDeletionRequestQueryService;
-import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAccessException;
-import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
-import com.aipaca.rumbo.platform.profiles.domain.repositories.DataDeletionRequestRepository;
-import com.aipaca.rumbo.platform.profiles.domain.model.queries.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.DataDeletionRequest;
+import com.aipaca.rumbo.platform.profiles.domain.model.queries.GetAllDataDeletionRequestsByRequestedByProfileIdQuery;
+import com.aipaca.rumbo.platform.profiles.domain.model.queries.GetDataDeletionRequestByIdQuery;
+import com.aipaca.rumbo.platform.profiles.domain.repositories.DataDeletionRequestRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Data Deletion Request Query Service Implementation
+ */
 @Service
-@Transactional(readOnly=true)
+@Transactional(readOnly = true)
 public class DataDeletionRequestQueryServiceImpl implements DataDeletionRequestQueryService {
-    private final DataDeletionRequestRepository requests;
-    private final ProfilesAuthorization auth;
-    public DataDeletionRequestQueryServiceImpl(DataDeletionRequestRepository requests, ProfilesAuthorization auth) {
-        this.requests=requests;this.auth=auth;
+    private final DataDeletionRequestRepository dataDeletionRequestRepository;
+
+    /**
+     * Constructor
+     *
+     * @param dataDeletionRequestRepository The {@link DataDeletionRequestRepository} instance
+     */
+    public DataDeletionRequestQueryServiceImpl(DataDeletionRequestRepository dataDeletionRequestRepository) {
+        this.dataDeletionRequestRepository = dataDeletionRequestRepository;
     }
-    @Override public Optional<DataDeletionRequest> handle(GetDataDeletionRequestByIdQuery query) {
-        var opt=requests.findById(query.deletionRequestId());
-        if (opt.isPresent() && !auth.isAdmin()
-                && !opt.get().getRequestedByProfileId().equals(auth.currentProfile().getId()))
-            throw new ProfilesAccessException("Deletion request is not accessible", false);
-        return opt;
+
+    // inherited javadoc
+    @Override
+    public Optional<DataDeletionRequest> handle(GetDataDeletionRequestByIdQuery query) {
+        return dataDeletionRequestRepository.findById(query.deletionRequestId());
     }
-    @Override public List<DataDeletionRequest> handle(GetAllDataDeletionRequestsByRequestedByProfileIdQuery query) {
-        if (!auth.isAdmin() && !auth.currentProfile().getId().equals(query.requestedByProfileId()))
-            throw new ProfilesAccessException("Deletion request list is not accessible", false);
-        return requests.findAllByRequestedByProfileId(query.requestedByProfileId());
+
+    // inherited javadoc
+    @Override
+    public List<DataDeletionRequest> handle(GetAllDataDeletionRequestsByRequestedByProfileIdQuery query) {
+        return dataDeletionRequestRepository.findAllByRequestedByProfileId(query.requestedByProfileId());
     }
 }

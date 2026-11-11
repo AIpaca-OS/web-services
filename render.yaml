@@ -5,11 +5,11 @@ services:
     name: rumbo-os-backend
     runtime: docker
     repo: https://github.com/AIpaca-OS/web-services
-    branch: develop
+    branch: main
     plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
-    autoDeployTrigger: checksPass
+    autoDeployTrigger: commit
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -17,36 +17,16 @@ services:
       # Change to "validate" after the initial schema is created.
       - key: SPRING_JPA_DDL_AUTO
         value: update
-      - key: APP_DEMO_ENABLED
-        value: "false"
-      - key: APP_PROFILES_DEMO_ENABLED
-        value: "false"
-      - key: PROFILES_AUTHORIZATION_ENABLED
-        value: "false"
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
       # Restricts private REST endpoints until IAM is implemented.
       # Obtain the generated key from Render's environment settings for Postman.
       - key: DEPLOYMENT_ACCESS_TOKEN
         generateValue: true
-      - key: DB_HOST
+      - key: RENDER_POSTGRES_URL
         fromDatabase:
           name: rumbo-os-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: rumbo-os-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: rumbo-os-db
-          property: database
-      - key: DB_USER
-        fromDatabase:
-          name: rumbo-os-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: rumbo-os-db
-          property: password
+          property: connectionString
 
 databases:
   - name: rumbo-os-db

@@ -1,6 +1,6 @@
 # Ejecutar en Windows PowerShell 5.1/PowerShell 7.
 # Requiere backend activo y SQL aplicado. Crea y borra solo una ruta temporal.
-param([string]$BaseUrl = 'http://localhost:8081')
+param([string]$BaseUrl = 'http://localhost:8080')
 $ErrorActionPreference = 'Stop'
 $base = $BaseUrl.TrimEnd('/') + '/api/v1/routes'
 $routeId = $null
@@ -12,7 +12,6 @@ try {
     $input = @{
       name = "Ruta temporal UPC $suffix"
       shift = 'MORNING'
-      vehicleId = 'vehicle-demo-1'
       stops = @(@{ address = 'Av. Primavera 123, Surco' })
       schedule = @(@{ dayOfWeek = 'MONDAY'; departureTime = '07:00' })
       scheduleConfirmed = $true
@@ -37,7 +36,7 @@ try {
     $updated = Invoke-RestMethod -Uri "$base/$routeId/schedule" -Method Put -ContentType 'application/json' -Body $body
     if ($updated.schedule[0].dayOfWeek -ne 'TUESDAY') { throw 'Horario no persistido' }
     Write-Host '[OK] PUT /api/v1/routes/{id}/schedule'
-    Write-Host 'No se prueba publicar/asignar: Students ACL aun no esta integrada.'
+    Write-Host 'No se prueba publicar/asignar: requiere un vehiculo y estudiantes registrados.'
 } finally {
     if ($routeId) {
         try { Invoke-RestMethod -Uri "$base/$routeId" -Method Delete | Out-Null; Write-Host '[OK] DELETE /api/v1/routes/{id}' }
