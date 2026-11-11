@@ -66,6 +66,10 @@ public class JourneyNotificationListener {
             case "TRIP_CANCELLED" -> {
                 title = "Viaje cancelado"; message = "El conductor canceló el recorrido.";
             }
+            case "STUDENT_ARRIVED" -> {
+                title = "Llegada confirmada";
+                message = "El conductor confirmó la llegada del estudiante al destino.";
+            }
             case "TRIP_COMPLETED" -> {
                 title = "Viaje completado"; message = "El conductor marcó el viaje como finalizado. No implica verificación independiente de llegada.";
             }

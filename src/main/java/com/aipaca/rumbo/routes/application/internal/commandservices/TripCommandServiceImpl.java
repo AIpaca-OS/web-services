@@ -95,6 +95,14 @@ public class TripCommandServiceImpl implements TripCommandService {
         return result;
     }
     @Override
+    public Trip handle(ConfirmStudentArrivalCommand command) {
+        Trip trip = required(command.tripId());
+        trip.confirmStudentArrival(command.studentId());
+        Trip saved = trips.save(trip);
+        notifyProgress(saved, "STUDENT_ARRIVED", List.of(command.studentId()));
+        return saved;
+    }
+    @Override
     public Trip handle(CompleteTripCommand command) {
         Trip trip = required(command.tripId());
         trip.complete();

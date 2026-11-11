@@ -112,6 +112,7 @@ public class TutorJourneysController {
         if (trip == null) return "ROUTE_PUBLISHED";
         if (passenger == null) return "NOT_ASSIGNED_ON_TRIP";
         if (passenger.isAbsent()) return "ABSENT";
+        if (passenger.isArrived()) return "ARRIVED";
         if (trip.getStatus() == TripStatus.CANCELLED) return "CANCELLED";
         if (trip.getStatus() == TripStatus.COMPLETED) return "TRIP_COMPLETED";
         if (passenger.isStopServed()) return "STOP_SERVED";
