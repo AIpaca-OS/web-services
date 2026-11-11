@@ -53,6 +53,15 @@ public class DemoDriverAlertsController {
         this.authorization = authorization;
     }
 
+    @ExceptionHandler(com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAccessException.class)
+    public org.springframework.http.ResponseEntity<org.springframework.http.ProblemDetail> access(
+            com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAccessException exception) {
+        HttpStatus status = exception.isAuthenticationRequired()
+                ? HttpStatus.UNAUTHORIZED : HttpStatus.FORBIDDEN;
+        return org.springframework.http.ResponseEntity.status(status).body(
+                org.springframework.http.ProblemDetail.forStatusAndDetail(status, exception.getMessage()));
+    }
+
     public record DemoAlertRequest(@NotBlank String kind,
                                    @NotBlank @Size(min = 4, max = 240) String message) {}
     public record DemoAlertResult(Long id, String title, String message) {}
