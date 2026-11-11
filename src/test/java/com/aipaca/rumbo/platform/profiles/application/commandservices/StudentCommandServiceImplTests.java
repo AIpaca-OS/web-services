@@ -1,12 +1,9 @@
 package com.aipaca.rumbo.platform.profiles.application.commandservices;
 
-import com.aipaca.rumbo.platform.profiles.application.events.ProfilesEventPublisher;
 import com.aipaca.rumbo.platform.profiles.application.internal.commandservices.StudentCommandServiceImpl;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAuthorization;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.*;
-import com.aipaca.rumbo.platform.profiles.domain.model.events.TutorAuthorized;
-import com.aipaca.rumbo.platform.profiles.domain.model.events.TutorAuthorizationRevoked;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.*;
 import com.aipaca.rumbo.platform.profiles.domain.repositories.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,12 +24,11 @@ class StudentCommandServiceImplTests {
     @Mock SchoolRepository schools;
     @Mock ProfileRepository profiles;
     @Mock ProfilesAuthorization auth;
-    @Mock ProfilesEventPublisher events;
     StudentCommandServiceImpl service;
     static final Instant AT = Instant.parse("2026-11-10T11:00:00Z");
     static final LocalDate DOB = LocalDate.of(2016, 5, 3);
 
-    @BeforeEach void setup() { service=new StudentCommandServiceImpl(students, schools, profiles, auth, events); }
+    @BeforeEach void setup() { service=new StudentCommandServiceImpl(students, schools, profiles, auth); }
 
     private Profile tutor() {
         return Profile.reconstitute(10L, new AccountId(3L), ProfileType.TUTOR,
@@ -54,13 +50,12 @@ class StudentCommandServiceImplTests {
                 0L, original.getAuthorizationRevision(),List.of(rel));
     }
 
-    @Test void registerStudentCreatesInitialAuthorizationAndEmitsEvent() {
+    @Test void registerStudentCreatesInitialAuthorization() {
         when(auth.currentTutor()).thenReturn(tutor());
         when(students.save(any(Student.class))).thenAnswer(call -> assignedIdentity(call.getArgument(0)));
         var result=service.handle(new RegisterStudentCommand(10L,"Ana","Pérez",DOB,null,RelationshipType.MOTHER));
         assertTrue(result.isSuccess());
         assertEquals(25L,result.toOptional().orElseThrow());
-        verify(events).publishAfterCommit(any(TutorAuthorized.class));
         verify(students).save(argThat(s -> s.hasAuthorizedTutor(10L)));
     }
 
@@ -68,7 +63,7 @@ class StudentCommandServiceImplTests {
         when(auth.currentTutor()).thenReturn(tutor());
         var result=service.handle(new RegisterStudentCommand(99L,"Ana","Pérez",DOB,null,RelationshipType.MOTHER));
         assertTrue(result.isFailure());
-        verifyNoInteractions(students,events);
+        verifyNoInteractions(students);
     }
 
     @Test void cannotRevokeTheLastAuthorizedTutor() {
@@ -77,10 +72,9 @@ class StudentCommandServiceImplTests {
         var result=service.handle(new RevokeTutorStudentRelationshipCommand(25L,10L,10L));
         assertTrue(result.isFailure());
         verify(students,never()).save(any());
-        verifyNoInteractions(events);
     }
 
-    @Test void authorizedTutorCanGrantAnotherTutorAndDispatchEvent() {
+    @Test void authorizedTutorCanGrantAnotherTutor() {
         when(auth.currentTutor()).thenReturn(tutor());
         when(auth.requireStudentAccess(25L)).thenReturn(existing());
         when(profiles.findById(11L)).thenReturn(java.util.Optional.of(Profile.reconstitute(
@@ -91,6 +85,5 @@ class StudentCommandServiceImplTests {
                 25L,11L,10L,RelationshipType.FATHER));
         assertTrue(result.isSuccess());
         verify(students).save(argThat(s -> s.hasAuthorizedTutor(11L)));
-        verify(events).publishAfterCommit(any(TutorAuthorized.class));
     }
 }

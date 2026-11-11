@@ -1,7 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.application.commandservices;
 
 import com.aipaca.rumbo.platform.profiles.application.internal.commandservices.DataDeletionRequestCommandServiceImpl;
-import com.aipaca.rumbo.platform.profiles.application.security.ProfilesAuthorization;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.*;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.*;
