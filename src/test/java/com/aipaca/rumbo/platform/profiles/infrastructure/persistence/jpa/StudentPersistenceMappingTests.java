@@ -26,7 +26,8 @@ class StudentPersistenceMappingTests extends OfflineProfilesMappingTestSupport {
         assertEquals("students", table.getName());
         var columns = columns();
         assertEquals(Set.of("id", "first_name", "last_name", "birth_date", "school_id",
-                "status", "anonymized_at", "created_at", "updated_at"), columns.keySet());
+                "status", "anonymized_at", "version", "authorization_revision",
+                "created_at", "updated_at"), columns.keySet());
         for (var column : columns.values()) {
             assertEquals(Set.of("school_id", "anonymized_at").contains(column.getName()), column.isNullable(),
                     column.getName());

@@ -177,4 +177,33 @@ class ServiceEnrollmentTests {
                     1L, 2L, 3L, invalidId, ServiceEnrollment.PENDING, REQUESTED_AT, null, null));
         }
     }
+
+    @Test void requesterCanCancelPendingEnrollmentWithoutAccepting() {
+        var enrollment = new ServiceEnrollment(new RequestServiceEnrollmentCommand(2L, 3L, 4L), REQUESTED_AT);
+        var when = REQUESTED_AT.plusSeconds(10);
+        enrollment.cancel(4L, when);
+        assertEquals(ServiceEnrollment.CANCELLED, enrollment.getStatus());
+        assertEquals(when, enrollment.getCancelledAt());
+        assertNull(enrollment.getAcceptedAt());
+        assertFalse(enrollment.isActive());
+        assertThrows(IllegalStateException.class, () -> enrollment.accept(when.plusSeconds(2)));
+        assertThrows(IllegalStateException.class, () -> enrollment.cancel(4L, when.plusSeconds(3)));
+        assertThrows(IllegalStateException.class, () -> enrollment.end(when.plusSeconds(4)));
+    }
+
+    @Test void onlyOriginalRequesterMayCancel() {
+        var enrollment = new ServiceEnrollment(new RequestServiceEnrollmentCommand(2L, 3L, 4L), REQUESTED_AT);
+        assertThrows(IllegalStateException.class, () -> enrollment.cancel(5L, REQUESTED_AT.plusSeconds(10)));
+        assertEquals(ServiceEnrollment.PENDING, enrollment.getStatus());
+        assertNull(enrollment.getCancelledAt());
+    }
+
+    @Test void cancelledEnrollmentRoundTripsWithItsCancellationTimestamp() {
+        var cancelled = ServiceEnrollment.reconstitute(5L, 2L, 3L, 4L,
+                ServiceEnrollment.CANCELLED, REQUESTED_AT, null, REQUESTED_AT.plusSeconds(10), null);
+        assertEquals(ServiceEnrollment.CANCELLED, cancelled.getStatus());
+        assertEquals(REQUESTED_AT.plusSeconds(10), cancelled.getCancelledAt());
+        assertThrows(IllegalArgumentException.class, () -> ServiceEnrollment.reconstitute(5L, 2L, 3L, 4L,
+                ServiceEnrollment.CANCELLED, REQUESTED_AT, null, null, null));
+    }
 }
