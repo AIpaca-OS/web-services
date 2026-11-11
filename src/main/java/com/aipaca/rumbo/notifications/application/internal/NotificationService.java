@@ -27,4 +27,8 @@ public class NotificationService {
     public Notification markRead(Long id) {
         Notification n=get(id); n.markAsRead(); return repository.save(n);
     }
+    public void delete(Long id) {
+        get(id);
+        repository.delete(id);
+    }
 }
