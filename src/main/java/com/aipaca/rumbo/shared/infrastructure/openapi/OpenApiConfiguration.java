@@ -1,4 +1,4 @@
-package com.aipaca.rumbo.platform.shared.infrastructure.documentation.openapi.configuration;
+package com.aipaca.rumbo.shared.infrastructure.openapi;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OpenApiConfiguration {
+
     @Bean
     public OpenAPI rumboOpenApi() {
         return new OpenAPI()
@@ -16,3 +17,4 @@ public class OpenApiConfiguration {
                         .version("v1"));
     }
 }
+
