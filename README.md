@@ -67,7 +67,7 @@ En `dev` el servidor escucha solo en `127.0.0.1`. Hibernate crea o actualiza el 
 
 La semilla opcional registra un tutor y un conductor ficticios más un colegio en el perfil `dev`.
 
-En `prod`, usa `RENDER_POSTGRES_URL` o las variables `DATABASE_*`. El esquema se valida por defecto. Para la primera prueba de integración, usa una base vacía de pruebas con `SPRING_JPA_DDL_AUTO=update`. Antes de reutilizar una base con datos, planifica una migración para las tablas y los IDs que cambiaron. Configura `DEPLOYMENT_ACCESS_TOKEN` para probar los endpoints privados desde Swagger o Postman.
+En `prod`, usa `RENDER_POSTGRES_URL` o las variables `DATABASE_*`. El esquema se valida por defecto. Para la primera prueba de integración, usa una base vacía de pruebas con `SPRING_JPA_DDL_AUTO=update`. Antes de reutilizar una base con datos, planifica una migración para las tablas y los IDs que cambiaron. Configura `DEPLOYMENT_ACCESS_TOKEN` para probar los endpoints privados desde Swagger o Postman. El servicio existente es [rumbo-team-backend](https://rumbo-team-backend.onrender.com), vinculado a `main`. Para conectar GitHub Pages al servicio existente, configura CORS desde su panel Environment.
 
 Swagger UI: <http://localhost:8080/swagger-ui/index.html>. La lista completa de endpoints está en
 `docs/ENDPOINTS_RUBRICA.csv`.

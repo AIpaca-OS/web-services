@@ -1,15 +1,18 @@
 # Ejecutar en Windows PowerShell 5.1/PowerShell 7.
-# Requiere backend activo y SQL aplicado. Crea y borra solo una ruta temporal.
+# Requiere Spring Boot local con APP_PROFILES_DEMO_ENABLED=true.
 param([string]$BaseUrl = 'http://localhost:8080')
 $ErrorActionPreference = 'Stop'
 $base = $BaseUrl.TrimEnd('/') + '/api/v1/routes'
 $routeId = $null
 try {
     Write-Host "Verificando $base ..."
-    $all = Invoke-RestMethod -Uri $base -Method Get
+    $api = $BaseUrl.TrimEnd('/') + '/api/v1'
+    $driver = Invoke-RestMethod -Uri "$api/profiles/by-account/10002" -Method Get
+    $all = Invoke-RestMethod -Uri "${base}?driverProfileId=$($driver.id)" -Method Get
     Write-Host '[OK] GET /api/v1/routes'
     $suffix = (Get-Date -Format 'yyyyMMddHHmmss')
     $input = @{
+      driverProfileId = $driver.id
       name = "Ruta temporal UPC $suffix"
       shift = 'MORNING'
       stops = @(@{ address = 'Av. Primavera 123, Surco' })
@@ -25,6 +28,7 @@ try {
     if ($read.name -ne $input.name) { throw 'GET /{id} devolvio nombre diferente' }
     Write-Host '[OK] GET /api/v1/routes/{id}'
     # Preservar ID de la parada al actualizar (identidad usada por asignaciones)
+    $input.Remove('driverProfileId')
     $input.name = "Ruta actualizada UPC $suffix"
     $input.stops = @(@{ id = $read.stops[0].id; address = 'Av. Primavera 123, Surco' })
     $body = ConvertTo-Json -InputObject $input -Depth 20
