@@ -57,7 +57,7 @@ class LocalProfilesHttpSmokeTests {
     @Test void seededDriverCatalogIsVisibleOnlyToLocalTutor() throws Exception {
         var tutor = get("/api/v1/local-demo/drivers", "tutor");
         assertEquals(200, tutor.statusCode(), tutor.body());
-        assertTrue(tutor.body().contains("Conductor de demostración"));
+        assertTrue(tutor.body().contains("Conductor escolar"));
 
         var driver = get("/api/v1/local-demo/drivers", "driver");
         assertEquals(403, driver.statusCode(), driver.body());

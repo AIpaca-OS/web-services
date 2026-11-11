@@ -43,7 +43,7 @@ public class LocalDemoDriverCatalogController {
         }
         return profiles.findByAccountId(new AccountId(LocalDemoActorIdentity.DRIVER_ACCOUNT_ID))
                 .filter(p -> p.getProfileType() == ProfileType.DRIVER)
-                .map(p -> List.of(new DemoDriver(p.getId(), "Conductor de demostración")))
+                .map(p -> List.of(new DemoDriver(p.getId(), "Conductor escolar")))
                 .orElseGet(List::of);
     }
 }
