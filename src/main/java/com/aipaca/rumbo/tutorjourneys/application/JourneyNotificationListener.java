@@ -1,6 +1,7 @@
 package com.aipaca.rumbo.tutorjourneys.application;
 
 import com.aipaca.rumbo.routes.domain.events.RoutePublishedEvent;
+import com.aipaca.rumbo.routes.domain.events.DriverRouteNoticeEvent;
 import com.aipaca.rumbo.routes.domain.events.TripProgressEvent;
 import com.aipaca.rumbo.routes.domain.model.RouteAssignment;
 import com.aipaca.rumbo.routes.domain.repositories.RouteRepository;
@@ -35,6 +36,22 @@ public class JourneyNotificationListener {
             notices.save(new StudentJourneyNotice(
                     studentId, routeId, tripId, key, kind, title, message));
         }
+    }
+    @EventListener
+    public void onDriverNotice(DriverRouteNoticeEvent event) {
+        routes.findById(event.routeId()).ifPresent(route -> {
+            String title = "DELAY".equals(event.kind())
+                    ? "Retraso de ruta" : "Incidencia de ruta";
+            for (RouteAssignment assignment : route.getAssignments()) {
+                String key = route.getId() + ":notice:" + event.eventId() + ":"
+                        + assignment.getStudentId();
+                if (!notices.existsByEventKey(key)) {
+                    notices.save(new StudentJourneyNotice(
+                            assignment.getStudentId(), route.getId(), null, key,
+                            event.kind(), title, event.message()));
+                }
+            }
+        });
     }
     @EventListener
     public void onPublished(RoutePublishedEvent event) {

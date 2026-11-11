@@ -17,6 +17,12 @@ class TutorJourneysDomainTests {
         notice.markAsRead();
         assertTrue(notice.isRead());
     }
+    @Test void driverRouteNoticeHasUniqueEventIdentity() {
+        var event = new com.aipaca.rumbo.routes.domain.events.DriverRouteNoticeEvent(
+                UUID.randomUUID(), UUID.randomUUID(), "DELAY", "Tráfico intenso");
+        assertNotNull(event.eventId());
+        assertEquals("DELAY", event.kind());
+    }
     @Test void tripEventCopiesPassengerIds() {
         var list = new java.util.ArrayList<String>(List.of("12"));
         TripProgressEvent event = new TripProgressEvent(

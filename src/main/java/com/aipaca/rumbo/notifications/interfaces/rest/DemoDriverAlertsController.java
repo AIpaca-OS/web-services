@@ -1,6 +1,10 @@
 package com.aipaca.rumbo.notifications.interfaces.rest;
 
 import com.aipaca.rumbo.notifications.application.internal.NotificationService;
+import com.aipaca.rumbo.routes.domain.events.DriverRouteNoticeEvent;
+import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.aipaca.rumbo.notifications.domain.model.commands.CreateNotificationCommand;
 import com.aipaca.rumbo.notifications.domain.model.valueobjects.NotificationPriority;
 import com.aipaca.rumbo.notifications.domain.model.valueobjects.NotificationType;
@@ -24,16 +28,29 @@ import java.util.UUID;
  * and authorized tutor filtering in the real Alerting context.
  */
 @RestController
-@RequestMapping("/api/v1/routes/{routeId}/demo-notices")
+@RequestMapping("/api/v1/routes/{routeId}/notices")
+@org.springframework.context.annotation.Profile("local")
 @ConditionalOnProperty(prefix = "app.demo", name = "enabled", havingValue = "true")
-@Tag(name = "Demo Driver Notices", description = "Local non-personal notice sent by a demo driver")
+@Tag(name = "Driver Notices", description = "Driver reports route delay or incident")
 public class DemoDriverAlertsController {
     private final RouteRepository routes;
     private final NotificationService notifications;
 
+    private final ApplicationEventPublisher eventPublisher;
+    private final ProfilesAuthorization authorization;
+
+    /** Retained for existing controller unit tests. */
     public DemoDriverAlertsController(RouteRepository routes, NotificationService notifications) {
+        this(routes, notifications, null, null);
+    }
+    @Autowired
+    public DemoDriverAlertsController(RouteRepository routes, NotificationService notifications,
+                                      ApplicationEventPublisher eventPublisher,
+                                      ProfilesAuthorization authorization) {
         this.routes = routes;
         this.notifications = notifications;
+        this.eventPublisher = eventPublisher;
+        this.authorization = authorization;
     }
 
     public record DemoAlertRequest(@NotBlank String kind,
@@ -44,6 +61,7 @@ public class DemoDriverAlertsController {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Report a delay or incident on a published route (local demo only)")
     public DemoAlertResult create(@PathVariable UUID routeId, @Valid @RequestBody DemoAlertRequest request) {
+        if (authorization != null) authorization.currentDriver();
         var route = routes.findById(routeId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Route does not exist"));
         if (route.getStatus() != RouteStatus.PUBLISHED)
@@ -54,12 +72,12 @@ public class DemoDriverAlertsController {
         NotificationPriority priority;
         switch (request.kind().trim().toUpperCase(java.util.Locale.ROOT)) {
             case "DELAY" -> {
-                title = "Retraso comunicado (demo) - " + route.getCode();
+                title = "Retraso comunicado - " + route.getCode();
                 type = NotificationType.warning;
                 priority = NotificationPriority.regular;
             }
             case "INCIDENT" -> {
-                title = "Incidencia comunicada (demo) - " + route.getCode();
+                title = "Incidencia comunicada - " + route.getCode();
                 type = NotificationType.important;
                 priority = NotificationPriority.critical;
             }
@@ -69,6 +87,11 @@ public class DemoDriverAlertsController {
         // No student identifiers, guardian details or addresses in this notice.
         var notice = notifications.create(new CreateNotificationCommand(
                 type, priority, title, request.message().trim(), routeId, null));
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new DriverRouteNoticeEvent(
+                    UUID.randomUUID(), routeId, request.kind().trim().toUpperCase(java.util.Locale.ROOT),
+                    request.message().trim()));
+        }
         return new DemoAlertResult(notice.getId(), notice.getTitle(), notice.getMessage());
     }
 }
