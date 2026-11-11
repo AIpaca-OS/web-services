@@ -17,7 +17,7 @@ import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.DeletionRequ
 
 @RestController
 @RequestMapping(value="/api/v1/data-deletion-requests",produces=MediaType.APPLICATION_JSON_VALUE)
-@Tag(name="Data Deletion Requests",description="Student personal-data deletion request lifecycle (US08)")
+@Tag(name="Data Deletion Requests",description="Student personal-data deletion request lifecycle.")
 public class DataDeletionRequestsController {
     private final DataDeletionRequestCommandService commands;
     private final DataDeletionRequestQueryService queries;

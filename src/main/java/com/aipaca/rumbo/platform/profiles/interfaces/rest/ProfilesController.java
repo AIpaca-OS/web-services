@@ -16,7 +16,7 @@ import com.aipaca.rumbo.platform.profiles.application.queryservices.ProfileQuery
 
 @RestController
 @RequestMapping(value="/api/v1/profiles",produces=MediaType.APPLICATION_JSON_VALUE)
-@Tag(name="Profiles",description="Authenticated self-profile operations (IAM identity required)")
+@Tag(name="Profiles",description="Authenticated self-profile operations")
 public class ProfilesController {
     private final ProfileCommandService commands;
     private final ProfileQueryService queries;
