@@ -48,6 +48,20 @@ public class Notification extends AbstractDomainAggregateRoot<Notification>{
         this.studentId = command.studentId();
     }
 
+    public static Notification reconstitute(
+            Long id,
+            NotificationType type,
+            NotificationPriority priority,
+            String title,
+            String message,
+            String readAt,
+            Boolean read,
+            RouteId routeId,
+            StudentId studentId
+    ) {
+        return new Notification(id, type, priority, title, message, readAt, read, routeId, studentId);
+    }
+
     public void maskAsRead()
     {
         this.read=true;

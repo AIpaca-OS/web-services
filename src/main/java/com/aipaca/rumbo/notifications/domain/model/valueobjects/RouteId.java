@@ -2,9 +2,9 @@ package com.aipaca.rumbo.notifications.domain.model.valueobjects;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public record RouteId(Long courseId) {
+public record RouteId(Long routeId) {
 
     public RouteId {
-        if (courseId == null || courseId < 1) throw new IllegalArgumentException("Course cannot be null or less than 1");
+        if (routeId == null || routeId < 1) throw new IllegalArgumentException("Route id cannot be null or less than 1");
     }
 }
