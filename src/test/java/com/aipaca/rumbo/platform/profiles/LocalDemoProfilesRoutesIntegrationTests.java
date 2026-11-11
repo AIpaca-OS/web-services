@@ -12,9 +12,9 @@ import com.aipaca.rumbo.platform.profiles.interfaces.rest.resources.CreateStuden
 import com.aipaca.rumbo.platform.profiles.interfaces.rest.resources.CreatedIdResource;
 import com.aipaca.rumbo.platform.profiles.interfaces.rest.resources.RequestEnrollmentResource;
 import com.aipaca.rumbo.platform.profiles.interfaces.rest.resources.SchoolResource;
-import com.aipaca.rumbo.routes.application.ports.StudentAuthorizationPort;
-import com.aipaca.rumbo.vehicles.domain.model.Vehicle;
-import com.aipaca.rumbo.vehicles.domain.repositories.VehicleRepository;
+import com.aipaca.rumbo.platform.routes.application.ports.StudentAuthorizationPort;
+import com.aipaca.rumbo.platform.vehicles.domain.model.Vehicle;
+import com.aipaca.rumbo.platform.vehicles.domain.repositories.VehicleRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
