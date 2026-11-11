@@ -15,7 +15,6 @@ import com.aipaca.rumbo.routes.application.ports.StudentAuthorizationPort;
 import com.aipaca.rumbo.vehicles.domain.repositories.VehicleRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +30,7 @@ import java.util.Optional;
  */
 @Component
 @Primary
-@Profile("local")
+@org.springframework.context.annotation.Profile("local")
 @ConditionalOnProperty(prefix="app.profiles.demo",name="enabled",havingValue="true")
 @Transactional(readOnly = true)
 public class LocalDemoStudentAuthorization implements StudentAuthorizationPort {
