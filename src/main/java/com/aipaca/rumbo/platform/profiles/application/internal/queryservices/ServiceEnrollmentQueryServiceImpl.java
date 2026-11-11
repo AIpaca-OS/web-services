@@ -39,12 +39,18 @@ public class ServiceEnrollmentQueryServiceImpl implements ServiceEnrollmentQuery
         }
         throw new ProfilesAccessException("Enrollments are not accessible",false);
     }
+    /**
+     * The tutor explicitly shares student details by requesting enrollment.
+     * The target driver may see both pending and accepted students for review.
+     * Route assignment eligibility stays ACCEPTED-only.
+     */
     @Override public List<Student> handle(GetAllStudentsByDriverIdQuery query) {
         var me=auth.currentDriver();
         if (!me.getId().equals(query.driverId()))
             throw new ProfilesAccessException("Driver student list is not accessible",false);
         var ids=enrollments.findAllByDriverProfileId(me.getId()).stream()
-                .filter(ServiceEnrollment::isActive).map(ServiceEnrollment::getStudentId).distinct().toList();
+                .filter(e -> ServiceEnrollment.PENDING.equals(e.getStatus()) || e.isActive())
+                .map(ServiceEnrollment::getStudentId).distinct().toList();
         return students.findAllById(ids).stream()
                 .filter(s->s.getAnonymizedAt()==null && s.getStatus()==StudentStatus.ACTIVE).toList();
     }

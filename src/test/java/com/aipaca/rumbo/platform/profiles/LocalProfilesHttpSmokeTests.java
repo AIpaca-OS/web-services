@@ -103,6 +103,11 @@ class LocalProfilesHttpSmokeTests {
         assertEquals(201, request.statusCode(), request.body());
         long requestId = firstId(request.body());
 
+        var visibleForReview = get("/api/v1/service-enrollments/drivers/me/students", "driver");
+        assertEquals(200, visibleForReview.statusCode(), visibleForReview.body());
+        assertTrue(visibleForReview.body().contains("\"firstName\":\"Estudiante\""),
+                visibleForReview.body());
+
         var stillPending = get("/api/v1/routes/eligible-students", "driver");
         assertFalse(stillPending.body().contains("\"id\":\"" + studentId + "\""));
 
