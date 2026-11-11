@@ -5,11 +5,11 @@ services:
     name: rumbo-os-backend
     runtime: docker
     repo: https://github.com/AIpaca-OS/web-services
-    branch: develop
+    branch: main
     plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
-    autoDeployTrigger: checksPass
+    autoDeployTrigger: commit
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
