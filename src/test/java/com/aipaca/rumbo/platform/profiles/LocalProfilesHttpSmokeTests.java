@@ -62,4 +62,55 @@ class LocalProfilesHttpSmokeTests {
         var driver = get("/api/v1/local-demo/drivers", "driver");
         assertEquals(403, driver.statusCode(), driver.body());
     }
+    private HttpResponse<String> post(String path, String role, String json) throws Exception {
+        var builder = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
+                .timeout(Duration.ofSeconds(10))
+                .header("Content-Type", "application/json")
+                .header("X-Rumbo-Demo-Role", role)
+                .POST(HttpRequest.BodyPublishers.ofString(json));
+        try (var client = HttpClient.newHttpClient()) {
+            return client.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+        }
+    }
+
+    private static long firstId(String json) {
+        int start = json.indexOf("\"id\":");
+        assertTrue(start >= 0, json);
+        start += 5;
+        while (start < json.length() && Character.isWhitespace(json.charAt(start))) start++;
+        int end = start;
+        while (end < json.length() && Character.isDigit(json.charAt(end))) end++;
+        return Long.parseLong(json.substring(start, end));
+    }
+
+    @Test void tutorRegistrationRequiresDriverAcceptanceBeforeRouteSelection() throws Exception {
+        long schoolId = firstId(get("/api/v1/schools", null).body());
+        long driverId = firstId(get("/api/v1/local-demo/drivers", "tutor").body());
+
+        var registration = post("/api/v1/students", "tutor",
+                "{\"firstName\":\"Estudiante\",\"lastName\":\"De Prueba\","
+                + "\"birthDate\":\"2018-03-05\",\"schoolId\":" + schoolId
+                + ",\"relationshipType\":\"OTHER\"}");
+        assertEquals(201, registration.statusCode(), registration.body());
+        long studentId = firstId(registration.body());
+
+        var before = get("/api/v1/routes/eligible-students", "driver");
+        assertEquals(200, before.statusCode(), before.body());
+        assertFalse(before.body().contains("\"id\":\"" + studentId + "\""));
+
+        var request = post("/api/v1/service-enrollments", "tutor",
+                "{\"studentId\":" + studentId + ",\"driverProfileId\":" + driverId + "}");
+        assertEquals(201, request.statusCode(), request.body());
+        long requestId = firstId(request.body());
+
+        var stillPending = get("/api/v1/routes/eligible-students", "driver");
+        assertFalse(stillPending.body().contains("\"id\":\"" + studentId + "\""));
+
+        var accepted = post("/api/v1/service-enrollments/" + requestId + "/accept", "driver", "{}");
+        assertEquals(200, accepted.statusCode(), accepted.body());
+        var eligible = get("/api/v1/routes/eligible-students", "driver");
+        assertEquals(200, eligible.statusCode(), eligible.body());
+        assertTrue(eligible.body().contains("\"id\":\"" + studentId + "\""), eligible.body());
+    }
+
 }
