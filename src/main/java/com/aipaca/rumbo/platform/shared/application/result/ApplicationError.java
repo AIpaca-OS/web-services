@@ -1,7 +1,6 @@
 package com.aipaca.rumbo.platform.shared.application.result;
 
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Represents an error that occurred in the application layer.
@@ -15,7 +14,7 @@ import org.jspecify.annotations.Nullable;
 public record ApplicationError(
         String code,
         String message,
-        @Nullable String details) {
+        String details) {
 
     /**
      * Creates an ApplicationError with code and message only.
