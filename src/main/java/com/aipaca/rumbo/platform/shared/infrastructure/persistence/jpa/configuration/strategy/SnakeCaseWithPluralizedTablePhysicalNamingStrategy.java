@@ -3,6 +3,7 @@ package com.aipaca.rumbo.platform.shared.infrastructure.persistence.jpa.configur
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategy;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
+
 import static io.github.encryptorcode.pluralize.Pluralize.pluralize;
 
 /**
@@ -44,9 +45,8 @@ public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements Physi
      * @return Identifier
      */
     private Identifier toSnakeCase(final Identifier identifier) {
-        if (identifier == null) {
-            return null;
-        }
+        if (identifier == null) return null;
+
         final String regex = "([a-z])([A-Z])";
         final String replacement = "$1_$2";
         final String newName = identifier.getText()
@@ -61,6 +61,8 @@ public class SnakeCaseWithPluralizedTablePhysicalNamingStrategy implements Physi
      * @return Identifier
      */
     private Identifier toPlural(final Identifier identifier) {
+        if (identifier == null) return null;
+
         final String newName = pluralize(identifier.getText());
         return Identifier.toIdentifier(newName);
     }

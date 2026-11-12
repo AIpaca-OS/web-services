@@ -25,6 +25,9 @@ class PlatformArchitectureTests {
 
     @Test
     void allCodeLivesUnderPlatform() throws IOException {
+        try (Stream<Path> entries = Files.list(BASE)) {
+            assertEquals(List.of(PLATFORM), entries.toList());
+        }
     }
 
     @Test
@@ -47,8 +50,10 @@ class PlatformArchitectureTests {
     }
 
     @Test
+    void onlyTheThreeApplicationPropertiesFilesExist() throws IOException {
         try (Stream<Path> files = Files.walk(Path.of("src/main/resources"))) {
             var names = files.filter(Files::isRegularFile).map(path -> path.getFileName().toString()).sorted().toList();
+            assertEquals(List.of("application-dev.properties", "application-prod.properties", "application.properties"), names);
         }
     }
 }
