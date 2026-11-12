@@ -59,3 +59,7 @@ mientras IAM y los permisos por rol no estén implementados.
 
 ## Bounded contexts
 Routes & Trip Planning, Profiles/Students, Billing, Vehicles y Alerting.
+
+### Catálogo público del curso
+
+`RUMBO_COURSE_CATALOG_ENABLED=true` importa los planes Freemium, Premium y Plus del prototipo a PostgreSQL. El inicializador usa el servicio de comandos de Billing, respeta los planes existentes y se puede desactivar tras confirmar la importación.
