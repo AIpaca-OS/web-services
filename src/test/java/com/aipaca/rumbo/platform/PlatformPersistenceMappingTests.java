@@ -75,9 +75,9 @@ class PlatformPersistenceMappingTests {
     void everyTableNameIsPluralSnakeCase() {
         var names = metadata.collectTableMappings().stream().map(Table::getName).toList();
         assertTrue(names.containsAll(List.of(
-                // "routes", "route_stops", "route_assignments", "route_schedules",
-                // "trips", "trip_passengers",
-                // "vehicles",
+                "routes", "route_stops", "route_assignments", "route_schedules",
+                "trips", "trip_passengers",
+                "vehicles",
                 // "notifications",
                 // "incidents", "incident_acknowledgements", "delays",
                 "profiles", "students",
@@ -88,7 +88,6 @@ class PlatformPersistenceMappingTests {
         }
     }
 
-    /*
     @Test
     void routeChildrenAreForeignKeys() {
         assertForeignKey("route_stops", "route_id", "routes");
@@ -98,6 +97,7 @@ class PlatformPersistenceMappingTests {
         assertForeignKey("trip_passengers", "trip_id", "trips");
     }
 
+    /*
     @Test
     void incidentChildrenAndDelayUpdatesAreForeignKeys() {
         assertForeignKey("incident_acknowledgements", "incident_id", "incidents");
