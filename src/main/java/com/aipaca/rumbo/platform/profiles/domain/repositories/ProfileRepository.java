@@ -5,7 +5,9 @@ import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.AccountId;
 
 import java.util.Optional;
 
-/** Profile repository port for identity lookup, account uniqueness and persistence. */
+/**
+ * Profile repository port.
+ */
 public interface ProfileRepository {
     Optional<Profile> findById(Long id);
 

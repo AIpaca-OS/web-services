@@ -27,8 +27,7 @@ class StudentRepositoryImplTests {
     StudentRepositoryImpl repository;
     @BeforeEach void setup() { repository = new StudentRepositoryImpl(persistenceRepository); }
     private Student student() {
-        return new Student(new RegisterStudentCommand(1L, "Ana", "Perez", LocalDate.of(2016, 3, 10),
-                2L, RelationshipType.MOTHER), AT);
+        return new Student(new RegisterStudentCommand(1L, "Ana", "Perez", LocalDate.of(2016, 3, 10), RelationshipType.MOTHER), AT);
     }
     private StudentPersistenceEntity stored(long id) {
         var entity = StudentPersistenceAssembler.toPersistenceFromDomain(student());

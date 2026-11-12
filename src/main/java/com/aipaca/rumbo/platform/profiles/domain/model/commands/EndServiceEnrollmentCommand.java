@@ -1,19 +1,23 @@
 package com.aipaca.rumbo.platform.profiles.domain.model.commands;
 
 /**
- * Requests termination by a currently authorized tutor or the enrolled driver.
- * requestedByProfileId identifies the actor, not necessarily the original requester.
- * Application services must verify this identity and permission before ending the enrollment.
+ * End Service Enrollment Command
+ *
+ * @param enrollmentId         enrollment id
+ * @param requestedByProfileId id of the driver or authorized tutor that ends it
  */
-public record EndServiceEnrollmentCommand(
-        Long enrollmentId,
-        Long requestedByProfileId
-) {
+public record EndServiceEnrollmentCommand(Long enrollmentId, Long requestedByProfileId) {
+    /**
+     * Compact constructor for EndServiceEnrollmentCommand.
+     *
+     * @throws IllegalArgumentException if any value is invalid.
+     */
     public EndServiceEnrollmentCommand {
-        if (enrollmentId == null || enrollmentId < 1)
+        if (enrollmentId == null || enrollmentId < 1) {
             throw new IllegalArgumentException("Invalid enrollment id");
-
-        if (requestedByProfileId == null || requestedByProfileId < 1)
+        }
+        if (requestedByProfileId == null || requestedByProfileId < 1) {
             throw new IllegalArgumentException("Invalid requester profile id");
+        }
     }
 }
