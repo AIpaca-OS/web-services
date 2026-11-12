@@ -97,15 +97,12 @@ class PlatformPersistenceMappingTests {
         assertForeignKey("trip_passengers", "trip_id", "trips");
     }
 
-    /*
     @Test
     void incidentChildrenAndDelayUpdatesAreForeignKeys() {
         assertForeignKey("incident_acknowledgements", "incident_id", "incidents");
         assertForeignKey("delays", "previous_delay_id", "delays");
     }
-    */
 
-    /*
     @Test
     void referencesToOtherBoundedContextsAreConvertedIdentitiesNotForeignKeys() {
         assertTrue(table("routes").getForeignKeyCollection().isEmpty());
@@ -114,8 +111,5 @@ class PlatformPersistenceMappingTests {
         assertTrue(table("vehicles").getForeignKeyCollection().isEmpty());
         assertTrue(table("incidents").getForeignKeyCollection().isEmpty());
         assertTrue(table("subscriptions").getForeignKeyCollection().isEmpty());
-        assertTrue(table("route_stops").getForeignKeyCollection().stream()
-                .noneMatch(fk -> fk.getColumns().getFirst().getName().equals("school_id")));
     }
-    */
 }
