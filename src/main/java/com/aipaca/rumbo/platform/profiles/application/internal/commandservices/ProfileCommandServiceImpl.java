@@ -1,37 +1,63 @@
 package com.aipaca.rumbo.platform.profiles.application.internal.commandservices;
+
 import com.aipaca.rumbo.platform.profiles.application.commandservices.ProfileCommandService;
-import com.aipaca.rumbo.platform.profiles.application.internal.ProfilesResults;
-import com.aipaca.rumbo.platform.profiles.application.internal.access.ProfilesAuthorization;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.Profile;
-import com.aipaca.rumbo.platform.profiles.domain.model.commands.*;
-import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.AccountId;
+import com.aipaca.rumbo.platform.profiles.domain.model.commands.CreateProfileCommand;
+import com.aipaca.rumbo.platform.profiles.domain.model.commands.UpdateProfileContactCommand;
 import com.aipaca.rumbo.platform.profiles.domain.repositories.ProfileRepository;
 import com.aipaca.rumbo.platform.shared.application.result.ApplicationError;
 import com.aipaca.rumbo.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Profile Command Service Implementation
+ */
 @Service
+@Transactional
 public class ProfileCommandServiceImpl implements ProfileCommandService {
-    private final ProfileRepository profiles;
-    private final ProfilesAuthorization authorization;
-    public ProfileCommandServiceImpl(ProfileRepository profiles, ProfilesAuthorization authorization) {
-        this.profiles=profiles; this.authorization=authorization;
+    private final ProfileRepository profileRepository;
+
+    /**
+     * Constructor
+     *
+     * @param profileRepository The {@link ProfileRepository} instance
+     */
+    public ProfileCommandServiceImpl(ProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
     }
-    @Override @Transactional
-    public Result<Long,ApplicationError> handle(CreateProfileCommand command) {
-        if (!authorization.currentAccountId().equals(command.accountId().accountId()))
-            return ProfilesResults.conflict("PROFILE", "Cannot register a profile for another IAM account");
-        if (profiles.existsByAccountId(command.accountId()))
-            return ProfilesResults.conflict("PROFILE", "Account already has a profile");
-        return Result.success(profiles.save(new Profile(command)).getId());
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(CreateProfileCommand command) {
+        if (profileRepository.existsByAccountId(command.accountId())) {
+            return Result.failure(ApplicationError.conflict("Profile", "Account already has a profile"));
+        }
+        try {
+            var savedProfile = profileRepository.save(new Profile(command));
+            return Result.success(savedProfile.getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Profile", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("create-profile", e.getMessage()));
+        }
     }
-    @Override @Transactional
-    public Result<Long,ApplicationError> handle(UpdateProfileContactCommand command) {
-        authorization.requireMyProfile(command.profileId());
-        var p=profiles.findById(command.profileId());
-        if (p.isEmpty()) return ProfilesResults.notFound("PROFILE",command.profileId());
-        p.get().updateContact(command.phoneNumber());
-        return Result.success(profiles.save(p.get()).getId());
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(UpdateProfileContactCommand command) {
+        var result = profileRepository.findById(command.profileId());
+        if (result.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Profile", command.profileId().toString()));
+        }
+        var profile = result.get();
+        try {
+            profile.updateContact(command.phoneNumber());
+            return Result.success(profileRepository.save(profile).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Profile", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("update-profile-contact", e.getMessage()));
+        }
     }
 }
