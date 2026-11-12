@@ -1,6 +1,14 @@
 package com.aipaca.rumbo.platform.routes.domain.model.commands;
 
-import java.util.UUID;
-
-/** Revalidate every student with Profiles before publishing a route. */
-public record PublishRouteCommand(UUID routeId, String authorizationHeader) {}
+/**
+ * Publish Route Command
+ *
+ * @param routeId route id
+ */
+public record PublishRouteCommand(Long routeId) {
+    public PublishRouteCommand {
+        if (routeId == null || routeId < 1) {
+            throw new IllegalArgumentException("Route id cannot be null or less than 1");
+        }
+    }
+}

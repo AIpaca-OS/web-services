@@ -1,12 +1,25 @@
 package com.aipaca.rumbo.platform.profiles.interfaces.rest.resources;
-import jakarta.validation.constraints.*;
-import java.time.Instant;
-import java.time.LocalDate;
-import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.*;
-/** HTTP-only representation; never serialize aggregate objects directly. */
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+/**
+ * Resource for a school.
+ */
+@Schema(
+    name = "SchoolResponse",
+    description = "School information response"
+)
 public record SchoolResource(
-        Long id,
-        String name,
-        String address,
-        String district
-) { }
+    @Schema(description = "School unique identifier", example = "1")
+    Long id,
+
+    @Schema(description = "School name", example = "Colegio San Juan")
+    String name,
+
+    @Schema(description = "School address", example = "Av. Principal 123")
+    String address,
+
+    @Schema(description = "School district", example = "Surco")
+    String district
+) {
+}

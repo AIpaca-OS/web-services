@@ -1,146 +1,153 @@
 package com.aipaca.rumbo.platform.routes.application.internal.commandservices;
+
 import com.aipaca.rumbo.platform.routes.application.commandservices.RouteCommandService;
-import com.aipaca.rumbo.platform.routes.application.ports.StudentAuthorizationPort;
-import com.aipaca.rumbo.platform.routes.domain.model.Route;
-import com.aipaca.rumbo.platform.routes.domain.model.RouteAssignment;
-import com.aipaca.rumbo.platform.routes.domain.model.RouteStatus;
-import com.aipaca.rumbo.platform.routes.domain.model.RouteStop;
+import com.aipaca.rumbo.platform.routes.domain.model.aggregates.Route;
 import com.aipaca.rumbo.platform.routes.domain.model.commands.*;
+import com.aipaca.rumbo.platform.routes.domain.model.valueobjects.StudentId;
 import com.aipaca.rumbo.platform.routes.domain.repositories.RouteRepository;
-import com.aipaca.rumbo.platform.routes.domain.repositories.TripRepository;
-import com.aipaca.rumbo.platform.routes.domain.events.RoutePublishedEvent;
-import org.springframework.http.HttpStatus;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.aipaca.rumbo.platform.shared.application.result.ApplicationError;
+import com.aipaca.rumbo.platform.shared.application.result.Result;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-import java.util.*;
-@Service @Transactional
+
+/**
+ * Route Command Service Implementation
+ */
+@Service
+@Transactional
 public class RouteCommandServiceImpl implements RouteCommandService {
-    private final RouteRepository repository;
-    private final TripRepository trips;
-    private final StudentAuthorizationPort studentAuthorization;
-    private final ApplicationEventPublisher events;
+    private final RouteRepository routeRepository;
 
-    /** Backwards-compatible constructor for plain service tests. */
-    public RouteCommandServiceImpl(RouteRepository repository, TripRepository trips,
-                                   StudentAuthorizationPort studentAuthorization) {
-        this(repository, trips, studentAuthorization, null);
+    /**
+     * Constructor
+     *
+     * @param routeRepository The {@link RouteRepository} instance
+     */
+    public RouteCommandServiceImpl(RouteRepository routeRepository) {
+        this.routeRepository = routeRepository;
     }
 
-    @Autowired
-    public RouteCommandServiceImpl(RouteRepository repository, TripRepository trips,
-                                   StudentAuthorizationPort studentAuthorization,
-                                   ApplicationEventPublisher events) {
-        this.repository=repository; this.trips=trips;
-        this.studentAuthorization=studentAuthorization; this.events=events;
-    }
-    private Route required(UUID id) {
-        return repository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Route not found"));
-    }
-    private void requireConfigurable(Route route) {
-        if (route.getStatus() != RouteStatus.CONFIGURABLE)
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Published routes cannot be reconfigured");
-    }
-    private void authorizePublishedEdit(Route route, String authorizationHeader) {
-        if (route.getStatus() == RouteStatus.PUBLISHED &&
-                !studentAuthorization.canManageVehicle(route.getVehicleId(), authorizationHeader))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Driver cannot modify this published route");
-    }
-    private void verifyPublishedAssignments(Route route, String authorizationHeader) {
-        route.validateForPublication();
-        for (RouteAssignment assignment : route.getAssignments()) {
-            if (!studentAuthorization.isAuthorized(
-                    assignment.getStudentId(), route.getVehicleId(), authorizationHeader))
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                        "An assigned student is no longer authorized");
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(CreateRouteCommand command) {
+        try {
+            var route = new Route(command);
+            var savedRoute = routeRepository.save(route);
+            return Result.success(savedRoute.getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.validationError("Route", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("create-route", e.getMessage()));
         }
     }
-    @Override public Route handle(CreateRouteCommand command) {
-        Route route=new Route(command.name(),command.shift(),command.vehicleId());
-        route.replaceStops(command.stops());
-        route.updateSchedule(command.schedule(),command.scheduleConfirmed());
-        return repository.save(route);
-    }
-    @Override public Route handle(UpdateRouteCommand command) {
-        Route route=required(command.routeId());
-        boolean published=route.getStatus()==RouteStatus.PUBLISHED;
-        authorizePublishedEdit(route,command.authorizationHeader());
-        if (published && !Objects.equals(route.getVehicleId(),command.vehicleId()))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "A published route cannot change vehicle");
-        route.rename(command.name());
-        route.setShift(command.shift());
-        route.setVehicleId(command.vehicleId());
-        route.replaceStops(command.stops());
-        route.updateSchedule(command.schedule(),command.scheduleConfirmed());
-        if (published) verifyPublishedAssignments(route,command.authorizationHeader());
-        return repository.save(route);
-    }
-    @Override public Route handle(UpdateRouteScheduleCommand command) {
-        Route route=required(command.routeId());
-        boolean published=route.getStatus()==RouteStatus.PUBLISHED;
-        authorizePublishedEdit(route,command.authorizationHeader());
-        route.updateSchedule(command.schedule(),command.confirm());
-        if (published) verifyPublishedAssignments(route,command.authorizationHeader());
-        return repository.save(route);
-    }
-    @Override public RouteAssignment handle(AssignStudentCommand command) {
-        Route route=required(command.routeId());
-        requireConfigurable(route);
-        if (!studentAuthorization.isAuthorized(command.studentId(), route.getVehicleId(), command.authorizationHeader()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Student is not authorized for this driver");
-        if (route.getAssignments().stream().anyMatch(a -> a.getStudentId().equals(command.studentId())))
-            throw new ResponseStatusException(HttpStatus.CONFLICT,"Student is already assigned to this route");
-        if (route.getStops().stream().noneMatch(s -> s.getId().equals(command.stopId())))
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Stop is not part of this route");
-        RouteAssignment assignment=route.assign(command.stopId(),command.studentId());
-        repository.save(route);
-        return assignment;
-    }
-    @Override public Route handle(PublishRouteCommand command) {
-        Route route=required(command.routeId());
-        if (route.getStatus() == RouteStatus.PUBLISHED)
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Route has already been published");
-        // Check route completeness before asking Profiles about student permissions.
-        route.validateForPublication();
-        for (RouteAssignment assignment : route.getAssignments()) {
-            if (!studentAuthorization.isAuthorized(assignment.getStudentId(), route.getVehicleId(), command.authorizationHeader()))
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN,"A route student is no longer authorized");
-        }
-        route.publish();
-        Route saved = repository.save(route);
-        if (events != null) events.publishEvent(new RoutePublishedEvent(saved.getId()));
-        return saved;
-    }
-    @Override public Route handle(ReplaceRouteAssignmentsCommand command) {
-        Route route = required(command.routeId());
-        requireConfigurable(route);
-        if (!studentAuthorization.canManageVehicle(route.getVehicleId(), command.authorizationHeader()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Driver cannot manage this vehicle");
-        if (command.assignments() == null)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Assignments are required");
 
-        Set<String> studentIds = new HashSet<>();
-        Set<UUID> stopIds = new HashSet<>();
-        for (RouteStop stop : route.getStops()) stopIds.add(stop.getId());
-
-        for (RouteAssignment assignment : command.assignments()) {
-            if (!stopIds.contains(assignment.getStopId()))
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Stop is not part of this route");
-            if (!studentIds.add(assignment.getStudentId()))
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Student is assigned more than once");
-            if (!studentAuthorization.isAuthorized(assignment.getStudentId(), route.getVehicleId(), command.authorizationHeader()))
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Student is not authorized for this driver");
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(UpdateRouteCommand command) {
+        var result = routeRepository.findById(command.routeId());
+        if (result.isEmpty())
+            return Result.failure(ApplicationError.notFound("Route", command.routeId().toString()));
+        var route = result.get();
+        try {
+            route.updateInformation(command.name(), command.shift(), command.vehicleId());
+            route.replaceStops(command.stops());
+            route.updateSchedule(command.schedule(), command.scheduleConfirmed());
+            return Result.success(routeRepository.save(route).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Route update", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("update-route", e.getMessage()));
         }
-        route.replaceAssignments(command.assignments());
-        return repository.save(route);
     }
-    @Override public void handle(DeleteRouteCommand command) {
-        Route route=required(command.routeId());
-        if (trips.existsByRouteId(command.routeId())) throw new ResponseStatusException(HttpStatus.CONFLICT,"Route has trips");
-        repository.delete(route);
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(UpdateRouteScheduleCommand command) {
+        var result = routeRepository.findById(command.routeId());
+        if (result.isEmpty())
+            return Result.failure(ApplicationError.notFound("Route", command.routeId().toString()));
+        var route = result.get();
+        try {
+            route.updateSchedule(command.schedule(), command.confirm());
+            return Result.success(routeRepository.save(route).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Route schedule", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("update-route-schedule", e.getMessage()));
+        }
+    }
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(AssignStudentToRouteCommand command) {
+        var result = routeRepository.findById(command.routeId());
+        if (result.isEmpty())
+            return Result.failure(ApplicationError.notFound("Route", command.routeId().toString()));
+        var route = result.get();
+        var studentId = new StudentId(command.studentId());
+        if (route.isStudentAssigned(studentId))
+            return Result.failure(ApplicationError.conflict("Route",
+                    "Student %d is already assigned to this route".formatted(command.studentId())));
+        try {
+            route.assignStudent(command.stopId(), studentId);
+            var savedRoute = routeRepository.save(route);
+            return savedRoute.findAssignment(studentId)
+                    .<Result<Long, ApplicationError>>map(assignment -> Result.success(assignment.getId()))
+                    .orElseGet(() -> Result.failure(ApplicationError.unexpected(
+                            "assign-student", "Assignment not found after saving the route")));
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Route assignment", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("assign-student", e.getMessage()));
+        }
+    }
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(ReplaceRouteAssignmentsCommand command) {
+        var result = routeRepository.findById(command.routeId());
+        if (result.isEmpty())
+            return Result.failure(ApplicationError.notFound("Route", command.routeId().toString()));
+        var route = result.get();
+        try {
+            route.replaceAssignments(command.assignments());
+            return Result.success(routeRepository.save(route).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Route assignments", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("replace-route-assignments", e.getMessage()));
+        }
+    }
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(PublishRouteCommand command) {
+        var result = routeRepository.findById(command.routeId());
+        if (result.isEmpty())
+            return Result.failure(ApplicationError.notFound("Route", command.routeId().toString()));
+        var route = result.get();
+        if (route.isPublished())
+            return Result.failure(ApplicationError.conflict("Route", "Route has already been published"));
+        try {
+            route.publish();
+            return Result.success(routeRepository.save(route).getId());
+        } catch (IllegalArgumentException e) {
+            return Result.failure(ApplicationError.businessRuleViolation("Route publication", e.getMessage()));
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("publish-route", e.getMessage()));
+        }
+    }
+
+    // inherited javadoc
+    @Override
+    public Result<Long, ApplicationError> handle(DeleteRouteCommand command) {
+        if (!routeRepository.existsById(command.routeId()))
+            return Result.failure(ApplicationError.notFound("Route", command.routeId().toString()));
+        try {
+            routeRepository.deleteById(command.routeId());
+            return Result.success(command.routeId());
+        } catch (Exception e) {
+            return Result.failure(ApplicationError.unexpected("delete-route", e.getMessage()));
+        }
     }
 }

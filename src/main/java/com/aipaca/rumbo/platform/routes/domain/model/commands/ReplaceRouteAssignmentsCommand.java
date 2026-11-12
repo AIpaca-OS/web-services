@@ -1,9 +1,23 @@
 package com.aipaca.rumbo.platform.routes.domain.model.commands;
 
-import com.aipaca.rumbo.platform.routes.domain.model.RouteAssignment;
-import java.util.List;
-import java.util.UUID;
+import com.aipaca.rumbo.platform.routes.domain.model.entities.RouteAssignment;
 
-/** Replace a route's student-to-stop assignments in one transaction. */
-public record ReplaceRouteAssignmentsCommand(
-        UUID routeId, List<RouteAssignment> assignments, String authorizationHeader) {}
+import java.util.List;
+
+/**
+ * Replace Route Assignments Command
+ *
+ * @param routeId     route id
+ * @param assignments complete list of student-to-stop assignments
+ */
+public record ReplaceRouteAssignmentsCommand(Long routeId, List<RouteAssignment> assignments) {
+    public ReplaceRouteAssignmentsCommand {
+        if (routeId == null || routeId < 1) {
+            throw new IllegalArgumentException("Route id cannot be null or less than 1");
+        }
+        if (assignments == null) {
+            throw new IllegalArgumentException("Assignments cannot be null");
+        }
+        assignments = List.copyOf(assignments);
+    }
+}

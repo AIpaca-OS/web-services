@@ -1,3 +1,7 @@
 package com.aipaca.rumbo.platform.routes.domain.model.queries;
-    import java.util.UUID;
-    public record GetAllRoutesQuery() {}
+
+/**
+ * Get All Routes Query
+ */
+public record GetAllRoutesQuery() {
+}
