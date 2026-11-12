@@ -78,7 +78,7 @@ public class SubscriptionCommandServiceImpl
         }
 
         var selectedPlan = plan.get();
-        var period = selectedPlan.getBillingPeriodMonths();
+        var period = effectiveBillingPeriodMonths(selectedPlan);
 
         if (!selectedPlan.isActive() || period == null) {
             return Result.failure(ApplicationError.conflict(
@@ -208,7 +208,7 @@ public class SubscriptionCommandServiceImpl
         var selectedPlan = target.get();
 
         if (!selectedPlan.isActive()
-                || selectedPlan.getBillingPeriodMonths() == null) {
+                || effectiveBillingPeriodMonths(selectedPlan) == null) {
 
             return Result.failure(ApplicationError.conflict(
                     "Plan",
@@ -242,7 +242,7 @@ public class SubscriptionCommandServiceImpl
                         command.driverId(), command.newPlanId()),
                 today,
                 today.plusMonths(
-                        selectedPlan.getBillingPeriodMonths()),
+                        effectiveBillingPeriodMonths(selectedPlan)),
                 selectedPlan.getVehicleLimit());
 
         var previousId = previousTarget
@@ -296,5 +296,22 @@ public class SubscriptionCommandServiceImpl
 
         return Result.success(
                 subscriptionRepository.update(subscription));
+    }
+
+    /**
+     * AV2's public course catalog was imported before billing terms existed.
+     * Those three known plans have a null period in PostgreSQL. Interpret them
+     * as one-month subscriptions until the catalog receives explicit terms.
+     * Reject other plans with unspecified periods instead of guessing.
+     */
+    private static Integer effectiveBillingPeriodMonths(
+            com.aipaca.rumbo.platform.billing.domain.model.aggregates.Plan plan) {
+        if (plan.getBillingPeriodMonths() != null) {
+            return plan.getBillingPeriodMonths();
+        }
+        return switch (plan.getName()) {
+            case "Freemium", "Premium", "Plus" -> 1;
+            default -> null;
+        };
     }
 }
