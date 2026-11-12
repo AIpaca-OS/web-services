@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.Instant;
 
 /** Request audit trail; persisting an APPROVED request alone does not remove personal data. */
