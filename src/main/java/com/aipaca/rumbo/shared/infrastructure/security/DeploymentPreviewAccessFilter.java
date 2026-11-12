@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
@@ -27,10 +28,19 @@ import java.security.MessageDigest;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class DeploymentPreviewAccessFilter extends OncePerRequestFilter {
     private final String configuredKey;
+    private final boolean publicDemoEnabled;
 
+    @Autowired
     public DeploymentPreviewAccessFilter(
-            @Value("${DEPLOYMENT_ACCESS_TOKEN:}") String configuredKey) {
+            @Value("${DEPLOYMENT_ACCESS_TOKEN:}") String configuredKey,
+            @Value("${BILLING_PUBLIC_DEMO_ENABLED:false}") boolean publicDemoEnabled) {
         this.configuredKey = configuredKey;
+        this.publicDemoEnabled = publicDemoEnabled;
+    }
+
+    /** Preserve test and compatibility constructor with demo disabled. */
+    DeploymentPreviewAccessFilter(String configuredKey) {
+        this(configuredKey, false);
     }
 
     @Override
@@ -62,6 +72,9 @@ public class DeploymentPreviewAccessFilter extends OncePerRequestFilter {
 
     private boolean requiresKey(String path, String method) {
         if ("OPTIONS".equalsIgnoreCase(method)) return false;
+        // Public demo endpoints use individually signed, expiring bearer sessions.
+        // They never authorize the existing private /api/v1/subscriptions routes.
+        if (publicDemoEnabled && path.startsWith("/api/v1/billing-demo/")) return false;
         if (!path.startsWith("/api/v1/")) return false;
         // Public plan catalog is safe to browse. All other APIs can disclose
         // routes, students, driver activity or billing details until IAM ships.
