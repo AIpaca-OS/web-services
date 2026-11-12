@@ -92,3 +92,7 @@ añadirán con eventos de integración y fachadas ACL (`interfaces/acl`, `interf
 - `incidents`: validar que el viaje exista y esté en curso (`trips`) y que quien confirma sea tutor autorizado del estudiante (`profiles`).
 - `notifications`: generar las notificaciones `STUDENT_JOURNEY` a partir de los eventos de ruta y viaje, y avisar a los tutores de las incidencias y retrasos (`incidents`), excluyendo a los estudiantes ya entregados (`trips`) y dirigiéndolas solo a los tutores autorizados (`profiles`).
 - `vehicles`, `routes`, `trips`, `billing`: comprobar que el `driverProfileId` sea un perfil de conductor (`profiles`).
+
+### Catálogo público del curso
+
+`RUMBO_COURSE_CATALOG_ENABLED=true` importa los planes Freemium, Premium y Plus del prototipo a PostgreSQL. El inicializador usa el servicio de comandos de Billing, respeta los planes existentes y se puede desactivar tras confirmar la importación.
