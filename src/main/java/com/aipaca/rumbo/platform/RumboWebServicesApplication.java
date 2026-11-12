@@ -1,4 +1,4 @@
-package com.aipaca.rumbo;
+package com.aipaca.rumbo.platform;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
