@@ -1,5 +1,6 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa;
 
+import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ServiceEnrollmentStatus;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.ServiceEnrollment;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.ServiceEnrollmentPersistenceEntity;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.repositories.ServiceEnrollmentPersistenceRepository;
@@ -51,7 +52,7 @@ class ServiceEnrollmentPersistenceMappingTests extends OfflineProfilesMappingTes
     }
 
     private static List<String> allowedStatuses() {
-        return List.of(ServiceEnrollment.PENDING, ServiceEnrollment.ACCEPTED, ServiceEnrollment.CANCELLED, ServiceEnrollment.ENDED);
+        return java.util.Arrays.stream(ServiceEnrollmentStatus.values()).map(Enum::name).toList();
     }
 
     @Test

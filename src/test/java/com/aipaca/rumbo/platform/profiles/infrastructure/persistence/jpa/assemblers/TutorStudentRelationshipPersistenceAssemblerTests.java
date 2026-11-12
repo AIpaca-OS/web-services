@@ -1,6 +1,6 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.assemblers;
 
-import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.TutorStudentRelationship;
+import com.aipaca.rumbo.platform.profiles.domain.model.entities.TutorStudentRelationship;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.AuthorizationStatus;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.RelationshipType;
 import org.junit.jupiter.api.Test;
