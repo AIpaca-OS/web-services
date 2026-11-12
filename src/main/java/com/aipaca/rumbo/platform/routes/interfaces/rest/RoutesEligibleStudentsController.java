@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "app.platform", name = "routes-enabled", havingValue = "true")
-@RestController
+@RestController("platformRoutesEligibleStudentsController")
 @CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(
         value = "/api/v1/routes",

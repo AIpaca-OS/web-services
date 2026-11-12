@@ -16,7 +16,7 @@ import java.util.Optional;
 /**
  * Route Query Service Implementation
  */
-@Service
+@Service("platformRoutesQueryService")
 @Transactional(readOnly = true)
 public class RouteQueryServiceImpl implements RouteQueryService {
     private final RouteRepository routeRepository;

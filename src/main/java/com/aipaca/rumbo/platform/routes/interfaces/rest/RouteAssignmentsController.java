@@ -36,7 +36,7 @@ import java.util.Objects;
  * REST controller that exposes the student-to-stop assignments of a route.
  */
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "app.platform", name = "routes-enabled", havingValue = "true")
-@RestController
+@RestController("platformRouteAssignmentsController")
 @CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/routes/{routeId}/assignments", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Routes", description = "School route planning endpoints")

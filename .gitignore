@@ -1,7 +1,7 @@
 target/
 .idea/
 *.iml
-.env
-.env.*
 !.env.example
 *.log
+config.bat
+node_modules

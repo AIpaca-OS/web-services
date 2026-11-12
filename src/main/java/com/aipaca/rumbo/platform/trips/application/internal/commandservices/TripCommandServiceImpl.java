@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 /**
  * Trip Command Service Implementation
  */
-@Service
+@Service("platformTripsCommandService")
 @Transactional
 public class TripCommandServiceImpl implements TripCommandService {
     private final TripRepository tripRepository;
