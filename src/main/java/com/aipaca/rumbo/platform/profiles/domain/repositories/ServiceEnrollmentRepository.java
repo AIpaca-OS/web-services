@@ -5,7 +5,9 @@ import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.ServiceEnrollm
 import java.util.List;
 import java.util.Optional;
 
-/** Service enrollment repository port. Actor authorization belongs to application services. */
+/**
+ * Service enrollment repository port.
+ */
 public interface ServiceEnrollmentRepository {
     Optional<ServiceEnrollment> findById(Long id);
 
@@ -14,9 +16,12 @@ public interface ServiceEnrollmentRepository {
     List<ServiceEnrollment> findAllByStudentId(Long studentId);
 
     /**
-     * Checks for a conflicting request or accepted service for this exact pair.
-     * ENDED enrollments and enrollments with a different driver do not count.
-     * This pre-check alone does not prevent concurrent duplicate writes.
+     * Checks whether the student-driver pair already has a PENDING or ACCEPTED enrollment.
+     * ENDED and CANCELLED enrollments do not count.
+     *
+     * @param studentId       The student id.
+     * @param driverProfileId The driver profile id.
+     * @return {@code true} when a conflicting enrollment exists.
      */
     boolean existsPendingOrAcceptedByStudentIdAndDriverProfileId(Long studentId, Long driverProfileId);
 
