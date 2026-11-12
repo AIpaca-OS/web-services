@@ -5,6 +5,7 @@ import com.aipaca.rumbo.platform.profiles.domain.repositories.DataDeletionReques
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.assemblers.DataDeletionRequestPersistenceAssembler;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.repositories.DataDeletionRequestPersistenceRepository;
 import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -17,17 +18,23 @@ public class DataDeletionRequestRepositoryImpl implements DataDeletionRequestRep
         this.persistenceRepository = persistenceRepository;
     }
 
-    @Override public Optional<DataDeletionRequest> findById(Long id) {
+    @Override
+
+    public Optional<DataDeletionRequest> findById(Long id) {
         return persistenceRepository.findById(id)
                 .map(DataDeletionRequestPersistenceAssembler::toDomainFromPersistence);
     }
 
-    @Override public List<DataDeletionRequest> findAllByRequestedByProfileId(Long requestedByProfileId) {
+    @Override
+
+    public List<DataDeletionRequest> findAllByRequestedByProfileId(Long requestedByProfileId) {
         return persistenceRepository.findAllByRequestedByProfileId(requestedByProfileId).stream()
                 .map(DataDeletionRequestPersistenceAssembler::toDomainFromPersistence).toList();
     }
 
-    @Override public DataDeletionRequest save(DataDeletionRequest request) {
+    @Override
+
+    public DataDeletionRequest save(DataDeletionRequest request) {
         var saved = persistenceRepository.save(
                 DataDeletionRequestPersistenceAssembler.toPersistenceFromDomain(request));
         return DataDeletionRequestPersistenceAssembler.toDomainFromPersistence(saved);
