@@ -14,7 +14,7 @@ class StudentPersistenceAssemblerTests {
     private static final LocalDate BIRTH = LocalDate.of(2016, 3, 10);
 
     @Test void studentRegistrationIncludesInitialTutorAndUnassignedChildIdentity() {
-        var student = new Student(new RegisterStudentCommand(1L, "Ana", "Perez", BIRTH, 2L,
+        var student = new Student(new RegisterStudentCommand(1L, "Ana", "Perez", BIRTH,
                 RelationshipType.MOTHER), AT);
         var entity = StudentPersistenceAssembler.toPersistenceFromDomain(student);
         assertNull(entity.getId());
@@ -26,7 +26,7 @@ class StudentPersistenceAssemblerTests {
     }
 
     @Test void persistedStudentRoundTripPreservesVersionAndCompleteHistory() {
-        var student = new Student(new RegisterStudentCommand(1L, "Ana", "Perez", BIRTH, 2L,
+        var student = new Student(new RegisterStudentCommand(1L, "Ana", "Perez", BIRTH,
                 RelationshipType.MOTHER), AT);
         student.authorizeTutor(2L, RelationshipType.FATHER, 1L, AT.plusSeconds(1));
         student.revokeTutor(2L, 1L, AT.plusSeconds(2));
@@ -48,7 +48,7 @@ class StudentPersistenceAssemblerTests {
     }
 
     @Test void corruptedStudentWithoutAuthorizedTutorFailsToReconstitute() {
-        var student = new Student(new RegisterStudentCommand(1L, "Ana", "Perez", BIRTH, 2L,
+        var student = new Student(new RegisterStudentCommand(1L, "Ana", "Perez", BIRTH,
                 RelationshipType.MOTHER), AT);
         var entity = StudentPersistenceAssembler.toPersistenceFromDomain(student);
         entity.setId(7L);

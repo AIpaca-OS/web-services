@@ -7,7 +7,8 @@ import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entitie
 
 /** Maps the entire Student aggregate, including historical tutor authorization children and revision. */
 public final class StudentPersistenceAssembler {
-    private StudentPersistenceAssembler() { }
+    private StudentPersistenceAssembler() {
+    }
 
     public static Student toDomainFromPersistence(StudentPersistenceEntity entity) {
         if (entity == null) return null;
@@ -15,7 +16,7 @@ public final class StudentPersistenceAssembler {
                 .map(TutorStudentRelationshipPersistenceAssembler::toDomainFromPersistence).toList();
         return Student.reconstitute(entity.getId(),
                 new PersonName(entity.getName().getFirstName(), entity.getName().getLastName()),
-                entity.getBirthDate(), entity.getSchoolId(), entity.getStatus(), entity.getAnonymizedAt(),
+                entity.getBirthDate(), entity.getStatus(), entity.getAnonymizedAt(),
                 entity.getVersion(), entity.getAuthorizationRevision(), relationships);
     }
 
@@ -27,7 +28,6 @@ public final class StudentPersistenceAssembler {
         entity.setName(new PersonNamePersistenceEmbeddable(
                 student.getName().firstName(), student.getName().lastName()));
         entity.setBirthDate(student.getBirthDate());
-        entity.setSchoolId(student.getSchoolId());
         entity.setStatus(student.getStatus());
         entity.setAnonymizedAt(student.getAnonymizedAt());
         for (var relationship : student.getTutorRelationships()) {

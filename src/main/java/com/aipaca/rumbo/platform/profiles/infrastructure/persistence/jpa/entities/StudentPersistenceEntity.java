@@ -6,6 +6,7 @@ import com.aipaca.rumbo.platform.shared.infrastructure.persistence.jpa.entities.
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,10 +23,6 @@ public class StudentPersistenceEntity extends AuditableAbstractPersistenceEntity
 
     @Column(name = "birth_date", nullable = false)
     private LocalDate birthDate;
-
-    @Column(name = "school_id")
-    private Long schoolId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 10)
     private StudentStatus status;
