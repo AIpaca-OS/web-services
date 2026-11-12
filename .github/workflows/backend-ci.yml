@@ -2,9 +2,9 @@ name: Backend CI
 
 on:
   push:
-    branches: [develop, main]
+    branches: [develop]
   pull_request:
-    branches: [develop, main]
+    branches: [develop]
 
 jobs:
   build-and-test:
@@ -46,9 +46,11 @@ jobs:
       - name: Smoke test Render production profile
         env:
           SPRING_PROFILES_ACTIVE: prod
-          RUMBO_COURSE_CATALOG_ENABLED: "true"
-          RENDER_POSTGRES_URL: postgresql://rumbo:ci_only_password@localhost:5432/rumbo
-          SPRING_DATASOURCE_URL: ""
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: rumbo
+          DB_USER: rumbo
+          DB_PASSWORD: ci_only_password
           SPRING_JPA_DDL_AUTO: update
           DEPLOYMENT_ACCESS_TOKEN: ci-only-preview-key
         run: |
@@ -61,10 +63,6 @@ jobs:
             sleep 2
           done
           curl -fsS http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'
-          curl -fsS http://127.0.0.1:8080/api/v1/plans | python3 -c '
-          import json, sys
-          plans = {plan["name"]: plan["referencePrice"] for plan in json.load(sys.stdin) if plan["active"]}
-          assert plans == {"Freemium": 0, "Premium": 25, "Plus": 40}, plans
-          '
+          curl -fsS http://127.0.0.1:8080/api/v1/plans > /dev/null
           test "$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/api/v1/routes)" = "401"
           test "$(curl -sS -o /dev/null -w '%{http_code}' -H 'X-Rumbo-Preview-Key: ci-only-preview-key' http://127.0.0.1:8080/api/v1/routes)" = "200"

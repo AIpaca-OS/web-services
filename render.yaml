@@ -5,11 +5,11 @@ services:
     name: rumbo-os-backend
     runtime: docker
     repo: https://github.com/AIpaca-OS/web-services
-    branch: main
+    branch: develop
     plan: free
     dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
-    autoDeployTrigger: commit
+    autoDeployTrigger: checksPass
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -27,10 +27,26 @@ services:
       # Obtain the generated key from Render's environment settings for Postman.
       - key: DEPLOYMENT_ACCESS_TOKEN
         generateValue: true
-      - key: RENDER_POSTGRES_URL
+      - key: DB_HOST
         fromDatabase:
           name: rumbo-os-db
-          property: connectionString
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: rumbo-os-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: rumbo-os-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: rumbo-os-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: rumbo-os-db
+          property: password
 
 databases:
   - name: rumbo-os-db

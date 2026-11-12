@@ -16,7 +16,7 @@ import com.aipaca.rumbo.platform.profiles.application.queryservices.StudentQuery
 
 @RestController
 @RequestMapping(value="/api/v1/students",produces=MediaType.APPLICATION_JSON_VALUE)
-@Tag(name="Students",description="Students accessible to an authorized tutor (US06, US07)")
+@Tag(name="Students",description="Students accessible to an authorized tutor")
 public class StudentsController {
     private final StudentCommandService commands;
     private final StudentQueryService queries;
