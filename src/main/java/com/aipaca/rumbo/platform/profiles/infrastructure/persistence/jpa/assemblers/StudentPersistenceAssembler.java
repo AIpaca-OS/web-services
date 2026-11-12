@@ -7,7 +7,8 @@ import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entitie
 
 /** Maps the entire Student aggregate, including historical tutor authorization children and revision. */
 public final class StudentPersistenceAssembler {
-    private StudentPersistenceAssembler() { }
+    private StudentPersistenceAssembler() {
+    }
 
     public static Student toDomainFromPersistence(StudentPersistenceEntity entity) {
         if (entity == null) return null;

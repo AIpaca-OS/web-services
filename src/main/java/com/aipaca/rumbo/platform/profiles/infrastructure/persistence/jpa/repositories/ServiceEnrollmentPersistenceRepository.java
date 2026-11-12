@@ -1,5 +1,6 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.repositories;
 
+import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ServiceEnrollmentStatus;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.ServiceEnrollmentPersistenceEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -19,5 +20,5 @@ public interface ServiceEnrollmentPersistenceRepository
     List<ServiceEnrollmentPersistenceEntity> findAllByStudentId(Long studentId);
 
     boolean existsByStudentIdAndDriverProfileIdAndStatusIn(
-            Long studentId, Long driverProfileId, Collection<String> statuses);
+            Long studentId, Long driverProfileId, Collection<ServiceEnrollmentStatus> statuses);
 }
