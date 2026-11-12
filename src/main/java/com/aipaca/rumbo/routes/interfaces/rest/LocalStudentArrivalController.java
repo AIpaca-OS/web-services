@@ -16,7 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/trips")
 @org.springframework.context.annotation.Profile("local")
-@ConditionalOnProperty(prefix="app.profiles.demo",name="enabled",havingValue="true")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.profiles.demo.enabled:false} && !${app.platform.routes-enabled:false}")
 @Tag(name="Trip arrivals", description="Explicit driver-confirmed student arrival")
 public class LocalStudentArrivalController {
     private final TripCommandService trips;

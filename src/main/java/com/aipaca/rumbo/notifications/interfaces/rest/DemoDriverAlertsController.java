@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/routes/{routeId}/notices")
 @org.springframework.context.annotation.Profile("local")
-@ConditionalOnProperty(prefix = "app.demo", name = "enabled", havingValue = "true")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("${app.demo.enabled:false} && !${app.platform.routes-enabled:false}")
 @Tag(name = "Driver Notices", description = "Driver reports route delay or incident")
 public class DemoDriverAlertsController {
     private final RouteRepository routes;

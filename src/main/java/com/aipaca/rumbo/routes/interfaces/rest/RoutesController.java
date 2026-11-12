@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.*;
 import static com.aipaca.rumbo.routes.interfaces.rest.resources.RouteResources.*;
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "app.platform", name = "routes-enabled", havingValue = "false", matchIfMissing = true)
 @RestController
 @RequestMapping(value="/api/v1/routes",produces=MediaType.APPLICATION_JSON_VALUE)
 @Tag(name="Routes",description="School route planning, stops, schedules and assignments")
