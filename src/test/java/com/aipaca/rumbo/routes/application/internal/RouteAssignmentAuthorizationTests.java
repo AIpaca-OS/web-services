@@ -132,4 +132,16 @@ class RouteAssignmentAuthorizationTests {
         assertEquals("student-1", route.getAssignments().getFirst().getStudentId());
     }
 
+    @Test void publishingTwiceReturnsConflict() {
+        when(profiles.isAuthorized("student-1", "vehicle-1", TOKEN)).thenReturn(true);
+        commands.handle(new AssignStudentCommand(route.getId(), stopId, "student-1", TOKEN));
+        commands.handle(new PublishRouteCommand(route.getId(), TOKEN));
+
+        var exception = assertThrows(ResponseStatusException.class,
+                () -> commands.handle(new PublishRouteCommand(route.getId(), TOKEN)));
+        assertEquals(HttpStatus.CONFLICT.value(), exception.getStatusCode().value());
+        assertEquals(RouteStatus.PUBLISHED, route.getStatus());
+        verify(routes, times(2)).save(route);
+    }
+
 }

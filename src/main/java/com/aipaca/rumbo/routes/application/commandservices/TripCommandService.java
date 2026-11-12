@@ -8,4 +8,5 @@ public interface TripCommandService {
     Trip handle(ServeStopCommand command);
     Trip handle(CancelTripCommand command);
     Trip handle(CompleteTripCommand command);
+    Trip handle(ConfirmStudentArrivalCommand command);
 }

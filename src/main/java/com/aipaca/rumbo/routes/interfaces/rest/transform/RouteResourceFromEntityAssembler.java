@@ -19,6 +19,6 @@ public final class RouteResourceFromEntityAssembler {
     public static AssignmentView view(RouteAssignment a){return new AssignmentView(a.getId(),a.getStopId(),a.getStudentId());}
     public static TripView view(Trip t){
         return new TripView(t.getId(),t.getRouteId(),t.getServiceDate(),t.getShift(),t.getStatus(),t.getCancelReason(),
-            t.getPassengers().stream().map(p->new PassengerView(p.getStudentId(),p.getStopId(),p.getStopPosition(),p.getStopAddress(),p.isAbsent(),p.isStopServed())).toList());
+            t.getPassengers().stream().map(p->new PassengerView(p.getStudentId(),p.getStopId(),p.getStopPosition(),p.getStopAddress(),p.isAbsent(),p.isStopServed(),p.isArrived())).toList());
     }
 }

@@ -37,6 +37,7 @@ import java.util.List;
 /**
  * REST controller that exposes trip execution endpoints.
  */
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "app.platform", name = "routes-enabled", havingValue = "true")
 @RestController
 @CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/trips", produces = MediaType.APPLICATION_JSON_VALUE)
