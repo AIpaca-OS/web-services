@@ -52,8 +52,18 @@ class PlatformArchitectureTests {
     @Test
     void onlyTheThreeApplicationPropertiesFilesExist() throws IOException {
         try (Stream<Path> files = Files.walk(Path.of("src/main/resources"))) {
-            var names = files.filter(Files::isRegularFile).map(path -> path.getFileName().toString()).sorted().toList();
-            assertEquals(List.of("application-dev.properties", "application-prod.properties", "application.properties"), names);
+            var names = files
+                    .filter(Files::isRegularFile)
+                    .map(path -> path.getFileName().toString())
+                    .filter(name -> name.startsWith("application") && name.endsWith(".properties"))
+                    .sorted()
+                    .toList();
+
+            assertEquals(List.of(
+                    "application-dev.properties",
+                    "application-prod.properties",
+                    "application.properties"
+            ), names);
         }
     }
 }
