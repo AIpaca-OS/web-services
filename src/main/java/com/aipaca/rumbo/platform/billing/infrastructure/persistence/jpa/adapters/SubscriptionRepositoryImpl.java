@@ -1,6 +1,7 @@
 package com.aipaca.rumbo.platform.billing.infrastructure.persistence.jpa.adapters;
 
 import com.aipaca.rumbo.platform.billing.domain.model.aggregates.DriverSubscription;
+import com.aipaca.rumbo.platform.billing.domain.model.valueobjects.DriverProfileId;
 import com.aipaca.rumbo.platform.billing.domain.repositories.SubscriptionRepository;
 import com.aipaca.rumbo.platform.billing.infrastructure.persistence.jpa.assemblers.SubscriptionPersistenceAssembler;
 import com.aipaca.rumbo.platform.billing.infrastructure.persistence.jpa.repositories.SubscriptionPersistenceRepository;
@@ -19,14 +20,14 @@ public class SubscriptionRepositoryImpl implements SubscriptionRepository {
     }
 
     @Override
-    public Optional<DriverSubscription> findLatest(Long driverId, Long planId) {
-        return persistenceRepository.findFirstByDriverIdAndPlanIdOrderByIdDesc(driverId, planId)
+    public Optional<DriverSubscription> findLatest(DriverProfileId driverProfileId, Long planId) {
+        return persistenceRepository.findFirstByDriverProfileIdAndPlanIdOrderByIdDesc(driverProfileId, planId)
                 .map(SubscriptionPersistenceAssembler::toDomainFromPersistence);
     }
 
     @Override
-    public List<DriverSubscription> findAllByDriverId(Long driverId) {
-        return persistenceRepository.findAllByDriverIdOrderByIdDesc(driverId).stream()
+    public List<DriverSubscription> findAllByDriverProfileId(DriverProfileId driverProfileId) {
+        return persistenceRepository.findAllByDriverProfileIdOrderByIdDesc(driverProfileId).stream()
                 .map(SubscriptionPersistenceAssembler::toDomainFromPersistence)
                 .toList();
     }

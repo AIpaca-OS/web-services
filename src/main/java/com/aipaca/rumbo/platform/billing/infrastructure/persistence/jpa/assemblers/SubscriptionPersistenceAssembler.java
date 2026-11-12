@@ -7,7 +7,7 @@ public class SubscriptionPersistenceAssembler {
 
     public static DriverSubscription toDomainFromPersistence(SubscriptionPersistenceEntity entity) {
         return DriverSubscription.reconstitute(
-                entity.getId(), entity.getDriverId(), entity.getPlanId(),
+                entity.getId(), entity.getDriverProfileId(), entity.getPlanId(),
                 entity.getStartDate(), entity.getEndDate(), entity.getStatus(),
                 entity.getVehicleLimit());
     }
@@ -15,7 +15,7 @@ public class SubscriptionPersistenceAssembler {
     public static SubscriptionPersistenceEntity toPersistenceFromDomain(
             DriverSubscription subscription, Long previousSubscriptionId) {
         var entity = new SubscriptionPersistenceEntity();
-        entity.setDriverId(subscription.getDriverId());
+        entity.setDriverProfileId(subscription.getDriverProfileId());
         entity.setPlanId(subscription.getPlanId());
         entity.setStartDate(subscription.getStartDate());
         entity.setEndDate(subscription.getEndDate());

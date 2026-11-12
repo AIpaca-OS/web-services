@@ -3,6 +3,7 @@ package com.aipaca.rumbo.platform.billing.application.internal.commandservices;
 import com.aipaca.rumbo.platform.billing.application.commandservices.SubscriptionCommandService;
 import com.aipaca.rumbo.platform.billing.domain.model.aggregates.DriverSubscription;
 import com.aipaca.rumbo.platform.billing.domain.model.commands.ActivateSubscriptionCommand;
+import com.aipaca.rumbo.platform.billing.domain.model.valueobjects.DriverProfileId;
 import com.aipaca.rumbo.platform.billing.domain.model.valueobjects.SubscriptionStatus;
 import com.aipaca.rumbo.platform.billing.domain.repositories.PlanRepository;
 import com.aipaca.rumbo.platform.billing.domain.repositories.SubscriptionRepository;
@@ -28,7 +29,7 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     @Override
     public Result<Activation, ApplicationError> handle(ActivateSubscriptionCommand command) {
         var today = LocalDate.now(ZoneId.of("America/Lima"));
-        var previous = subscriptionRepository.findLatest(command.driverId(), command.planId());
+        var previous = subscriptionRepository.findLatest(new DriverProfileId(command.driverId()), command.planId());
 
         if (previous.isPresent() && previous.get().statusOn(today) == SubscriptionStatus.ACTIVE)
             return Result.success(new Activation(previous.get(), false));
@@ -51,7 +52,7 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
             var saved = subscriptionRepository.save(subscription, previousId);
             return Result.success(new Activation(saved, true));
         } catch (Exception e) {
-            var latest = subscriptionRepository.findLatest(command.driverId(), command.planId());
+            var latest = subscriptionRepository.findLatest(new DriverProfileId(command.driverId()), command.planId());
             if (latest.isPresent()
                     && !latest.get().getId().equals(previousId)
                     && latest.get().statusOn(today) == SubscriptionStatus.ACTIVE)
