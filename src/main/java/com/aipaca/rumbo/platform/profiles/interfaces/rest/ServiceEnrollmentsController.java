@@ -39,7 +39,7 @@ import java.util.List;
  * REST controller that exposes the enrollment of students in the service of a driver.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/service-enrollments", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Service Enrollments", description = "Student-driver service enrollment endpoints")
 public class ServiceEnrollmentsController {

@@ -50,10 +50,12 @@ class PlatformArchitectureTests {
     }
 
     @Test
-    void onlyTheThreeApplicationPropertiesFilesExist() throws IOException {
+    void resourcesFollowTheLearningCenterModel() throws IOException {
         try (Stream<Path> files = Files.walk(Path.of("src/main/resources"))) {
             var names = files.filter(Files::isRegularFile).map(path -> path.getFileName().toString()).sorted().toList();
-            assertEquals(List.of("application-dev.properties", "application-prod.properties", "application.properties"), names);
+            assertEquals(List.of("ValidationMessages.properties", "ValidationMessages_es.properties",
+                    "application-dev.properties", "application-prod.properties", "application.properties",
+                    "messages.properties", "messages_es.properties"), names);
         }
     }
 }

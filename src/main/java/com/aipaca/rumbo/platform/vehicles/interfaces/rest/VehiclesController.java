@@ -37,7 +37,7 @@ import java.util.List;
  * REST controller that exposes vehicle registration endpoints.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/vehicles", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Vehicles", description = "Vehicle management endpoints")
 public class VehiclesController {

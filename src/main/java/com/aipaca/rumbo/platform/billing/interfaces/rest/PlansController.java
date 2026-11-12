@@ -33,7 +33,7 @@ import java.util.List;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/plans", produces = APPLICATION_JSON_VALUE)
 @Tag(name = "Plans", description = "Subscription plan catalog endpoints")
 public class PlansController {

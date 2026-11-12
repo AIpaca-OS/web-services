@@ -34,7 +34,7 @@ import java.util.List;
  * REST controller that exposes delay endpoints.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/delays", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Delays", description = "Delay management endpoints")
 public class DelaysController {

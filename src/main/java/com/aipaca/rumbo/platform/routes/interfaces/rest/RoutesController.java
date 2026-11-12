@@ -35,7 +35,7 @@ import java.util.List;
  * REST controller that exposes route planning endpoints: stops, schedules and publication.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/routes", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Routes", description = "School route planning endpoints")
 public class RoutesController {

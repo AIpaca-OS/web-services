@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.*;
  * REST controller that exposes profile resources and profile retrieval endpoints.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/profiles", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Profiles", description = "Profile management endpoints")
 public class ProfilesController {

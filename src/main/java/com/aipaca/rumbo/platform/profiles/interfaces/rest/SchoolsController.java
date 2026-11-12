@@ -24,7 +24,7 @@ import java.util.List;
  * REST controller that exposes the read-only catalog of schools.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/schools", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Schools", description = "School catalog endpoints")
 public class SchoolsController {

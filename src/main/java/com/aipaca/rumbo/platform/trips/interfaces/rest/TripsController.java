@@ -38,7 +38,7 @@ import java.util.List;
  * REST controller that exposes trip execution endpoints.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/trips", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Trips", description = "Trip execution and monitoring endpoints")
 public class TripsController {

@@ -34,7 +34,7 @@ import java.util.List;
  * REST controller that exposes student registration and tutor authorization endpoints.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/students", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Students", description = "Student management endpoints")
 public class StudentsController {

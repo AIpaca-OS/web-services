@@ -35,7 +35,7 @@ import java.util.List;
  * REST controller that exposes the requests to delete the personal data of a student.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/data-deletion-requests", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Data Deletion Requests", description = "Student personal-data deletion request endpoints")
 public class DataDeletionRequestsController {

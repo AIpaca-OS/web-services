@@ -27,7 +27,7 @@ import com.aipaca.rumbo.platform.notifications.interfaces.rest.transform.CreateS
  * REST controller that notifies the tutors of a student about its journey.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/notifications/student-journeys", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Notifications", description = "Notification management endpoints")
 public class StudentJourneyNotificationsController {

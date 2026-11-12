@@ -37,7 +37,7 @@ import java.util.List;
  * REST controller that exposes notification endpoints.
  */
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/notifications", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Notifications", description = "Notification management endpoints")
 public class NotificationsController {

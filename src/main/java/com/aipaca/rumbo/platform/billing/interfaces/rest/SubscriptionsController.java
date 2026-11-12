@@ -30,7 +30,7 @@ import java.util.List;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RestController
-@CrossOrigin(origins = "${app.cors.allowed-origins}")
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/subscriptions",
         produces = APPLICATION_JSON_VALUE)
 @Tag(name = "Subscriptions", description = "Driver subscription endpoints")
