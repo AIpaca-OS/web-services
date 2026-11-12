@@ -4,14 +4,34 @@ import com.aipaca.rumbo.platform.shared.domain.model.aggregates.AbstractDomainAg
 import lombok.Getter;
 
 /**
- * School aggregate root, referenced by students through its identity.
- * Persistence mapping belongs to infrastructure.
+ * School aggregate root.
+ *
+ * <p>
+ * Read-only catalog entry referenced by students through its identity.
+ * No JPA or persistence annotation is present here — those concerns live
+ * exclusively in {@code SchoolPersistenceEntity}.
+ * </p>
  */
 @Getter
 public class School extends AbstractDomainAggregateRoot<School> {
+    /**
+     * The unique identifier for the school.
+     */
     private Long id;
+
+    /**
+     * The school name.
+     */
     private String name;
+
+    /**
+     * The school address.
+     */
     private String address;
+
+    /**
+     * The school district.
+     */
     private String district;
 
     private School(Long id, String name, String address, String district) {
@@ -24,12 +44,26 @@ public class School extends AbstractDomainAggregateRoot<School> {
         this.district = validateText(district, "School district", 100);
     }
 
-    /** Creates a school whose identity will be assigned by persistence. */
+    /**
+     * Creates a school whose identity will be assigned by persistence.
+     *
+     * @param name     The school name.
+     * @param address  The school address.
+     * @param district The school district.
+     */
     public School(String name, String address, String district) {
         this(null, name, address, district);
     }
 
-    /** Restores an existing school with its persisted identity and values. */
+    /**
+     * Reconstitutes an existing school from persistence state.
+     *
+     * @param id       The unique identifier.
+     * @param name     The school name.
+     * @param address  The school address.
+     * @param district The school district.
+     * @return The reconstituted School instance.
+     */
     public static School reconstitute(Long id, String name, String address, String district) {
         if (id == null || id < 1) {
             throw new IllegalArgumentException("Invalid school id");
