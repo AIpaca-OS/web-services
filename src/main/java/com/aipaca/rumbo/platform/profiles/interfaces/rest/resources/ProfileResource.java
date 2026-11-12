@@ -1,14 +1,32 @@
 package com.aipaca.rumbo.platform.profiles.interfaces.rest.resources;
-import jakarta.validation.constraints.*;
-import java.time.Instant;
-import java.time.LocalDate;
-import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.*;
-/** HTTP-only representation; never serialize aggregate objects directly. */
+
+import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ProfileType;
+import io.swagger.v3.oas.annotations.media.Schema;
+
+/**
+ * Resource for a profile.
+ */
+@Schema(
+    name = "ProfileResponse",
+    description = "Profile information response"
+)
 public record ProfileResource(
-        Long id,
-        Long accountId,
-        ProfileType profileType,
-        String firstName,
-        String lastName,
-        String phoneNumber
-) { }
+    @Schema(description = "Profile unique identifier", example = "1")
+    Long id,
+
+    @Schema(description = "Account id", example = "1")
+    Long accountId,
+
+    @Schema(description = "Profile type", example = "TUTOR")
+    ProfileType profileType,
+
+    @Schema(description = "First name", example = "Ana")
+    String firstName,
+
+    @Schema(description = "Last name", example = "Pérez")
+    String lastName,
+
+    @Schema(description = "Contact phone number", example = "987654321")
+    String phoneNumber
+) {
+}
