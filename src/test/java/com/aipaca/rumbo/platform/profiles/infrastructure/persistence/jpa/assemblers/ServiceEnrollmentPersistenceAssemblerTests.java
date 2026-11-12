@@ -1,5 +1,6 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.assemblers;
 
+import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ServiceEnrollmentStatus;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.ServiceEnrollment;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.RequestServiceEnrollmentCommand;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ class ServiceEnrollmentPersistenceAssemblerTests {
         assertEquals(7L, entity.getStudentId());
         assertEquals(8L, entity.getDriverProfileId());
         assertEquals(9L, entity.getRequestedByProfileId());
-        assertEquals(ServiceEnrollment.PENDING, entity.getStatus());
+        assertEquals(ServiceEnrollmentStatus.PENDING, entity.getStatus());
         assertEquals(REQUESTED, entity.getRequestedAt());
         assertNull(entity.getAcceptedAt());
         assertNull(entity.getEndedAt());
@@ -40,7 +41,7 @@ class ServiceEnrollmentPersistenceAssemblerTests {
 
     @ParameterizedTest
     @MethodSource("allValidStates")
-    void roundTripPreservesAllValidStatesAndFullTimestamps(String status, Instant acceptedAt, Instant endedAt) {
+    void roundTripPreservesAllValidStatesAndFullTimestamps(ServiceEnrollmentStatus status, Instant acceptedAt, Instant endedAt) {
         var enrollment = ServiceEnrollment.reconstitute(25L, 7L, 8L, 9L, status, REQUESTED, acceptedAt, endedAt);
         var restored = ServiceEnrollmentPersistenceAssembler.toDomainFromPersistence(
                 ServiceEnrollmentPersistenceAssembler.toPersistenceFromDomain(enrollment));
@@ -52,15 +53,15 @@ class ServiceEnrollmentPersistenceAssemblerTests {
         assertEquals(enrollment.getRequestedAt(), restored.getRequestedAt());
         assertEquals(enrollment.getAcceptedAt(), restored.getAcceptedAt());
         assertEquals(enrollment.getEndedAt(), restored.getEndedAt());
-        assertEquals(ServiceEnrollment.ACCEPTED.equals(status), restored.isActive());
+        assertEquals(ServiceEnrollmentStatus.ACCEPTED.equals(status), restored.isActive());
         assertTrue(restored.domainEvents().isEmpty());
     }
 
     private static Stream<Arguments> allValidStates() {
         return Stream.of(
-                Arguments.of(ServiceEnrollment.PENDING, null, null),
-                Arguments.of(ServiceEnrollment.ACCEPTED, ACCEPTED, null),
-                Arguments.of(ServiceEnrollment.ENDED, ACCEPTED, ENDED));
+                Arguments.of(ServiceEnrollmentStatus.PENDING, null, null),
+                Arguments.of(ServiceEnrollmentStatus.ACCEPTED, ACCEPTED, null),
+                Arguments.of(ServiceEnrollmentStatus.ENDED, ACCEPTED, ENDED));
     }
 
     @Test
@@ -71,7 +72,7 @@ class ServiceEnrollmentPersistenceAssemblerTests {
         var entity = ServiceEnrollmentPersistenceAssembler.toPersistenceFromDomain(enrollment);
         entity.setId(25L);
         var restored = ServiceEnrollmentPersistenceAssembler.toDomainFromPersistence(entity);
-        assertEquals(ServiceEnrollment.ENDED, restored.getStatus());
+        assertEquals(ServiceEnrollmentStatus.ENDED, restored.getStatus());
         assertEquals(REQUESTED, restored.getRequestedAt());
         assertEquals(ACCEPTED, restored.getAcceptedAt());
         assertEquals(ENDED, restored.getEndedAt());
@@ -87,7 +88,7 @@ class ServiceEnrollmentPersistenceAssemblerTests {
     @ValueSource(longs = {0, -1})
     void storedEnrollmentRequiresValidPersistedIdentity(Long id) {
         var entity = ServiceEnrollmentPersistenceAssembler.toPersistenceFromDomain(
-                ServiceEnrollment.reconstitute(25L, 7L, 8L, 9L, ServiceEnrollment.PENDING, REQUESTED, null, null));
+                ServiceEnrollment.reconstitute(25L, 7L, 8L, 9L, ServiceEnrollmentStatus.PENDING, REQUESTED, null, null));
         entity.setId(id);
         assertThrows(IllegalArgumentException.class,
                 () -> ServiceEnrollmentPersistenceAssembler.toDomainFromPersistence(entity));
@@ -96,16 +97,16 @@ class ServiceEnrollmentPersistenceAssemblerTests {
     @Test
     void corruptedStoredStateIsRejectedByDomainInvariants() {
         var entity = ServiceEnrollmentPersistenceAssembler.toPersistenceFromDomain(
-                ServiceEnrollment.reconstitute(25L, 7L, 8L, 9L, ServiceEnrollment.PENDING, REQUESTED, null, null));
-        entity.setStatus(ServiceEnrollment.ACCEPTED);
+                ServiceEnrollment.reconstitute(25L, 7L, 8L, 9L, ServiceEnrollmentStatus.PENDING, REQUESTED, null, null));
+        entity.setStatus(ServiceEnrollmentStatus.ACCEPTED);
         assertThrows(IllegalArgumentException.class,
                 () -> ServiceEnrollmentPersistenceAssembler.toDomainFromPersistence(entity));
-        entity.setStatus(ServiceEnrollment.ENDED);
+        entity.setStatus(ServiceEnrollmentStatus.ENDED);
         entity.setAcceptedAt(ACCEPTED);
         entity.setEndedAt(REQUESTED);
         assertThrows(IllegalArgumentException.class,
                 () -> ServiceEnrollmentPersistenceAssembler.toDomainFromPersistence(entity));
-        entity.setStatus("CANCELED");
+        entity.setStatus(ServiceEnrollmentStatus.CANCELLED);
         entity.setAcceptedAt(null);
         entity.setEndedAt(null);
         assertThrows(IllegalArgumentException.class,
@@ -118,7 +119,7 @@ class ServiceEnrollmentPersistenceAssemblerTests {
         var entity = ServiceEnrollmentPersistenceAssembler.toPersistenceFromDomain(enrollment);
         entity.setId(25L);
         var restored = ServiceEnrollmentPersistenceAssembler.toDomainFromPersistence(entity);
-        assertEquals(ServiceEnrollment.CANCELLED, restored.getStatus());
+        assertEquals(ServiceEnrollmentStatus.CANCELLED, restored.getStatus());
         assertEquals(REQUESTED.plusSeconds(5), restored.getCancelledAt());
         assertNull(restored.getEndedAt());
     }

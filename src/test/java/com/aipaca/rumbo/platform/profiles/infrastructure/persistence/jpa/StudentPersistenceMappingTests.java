@@ -25,21 +25,20 @@ class StudentPersistenceMappingTests extends OfflineProfilesMappingTestSupport {
         var table = metadata.getEntityBinding(StudentPersistenceEntity.class.getName()).getTable();
         assertEquals("students", table.getName());
         var columns = columns();
-        assertEquals(Set.of("id", "first_name", "last_name", "birth_date", "school_id",
+        assertEquals(Set.of("id", "first_name", "last_name", "birth_date",
                 "status", "anonymized_at", "version", "authorization_revision",
                 "created_at", "updated_at"), columns.keySet());
         for (var column : columns.values()) {
-            assertEquals(Set.of("school_id", "anonymized_at").contains(column.getName()), column.isNullable(),
+            assertEquals(Set.of("anonymized_at").contains(column.getName()), column.isNullable(),
                     column.getName());
         }
         assertTrue(table.getUniqueKeys().isEmpty());
     }
 
     @Test
-    void datesSchoolReferenceAndStatusUseNativeMappings() {
+    void datesAndStatusUseNativeMappings() {
         var columns = columns();
         assertEquals(Types.DATE, columns.get("birth_date").getSqlTypeCode(metadata));
-        assertEquals(Types.BIGINT, columns.get("school_id").getSqlTypeCode(metadata));
         assertEquals(SqlTypes.TIMESTAMP_UTC, columns.get("anonymized_at").getSqlTypeCode(metadata));
         assertTrue(columns.get("anonymized_at").getSqlType(metadata).contains("with time zone"));
         assertEquals(Types.VARCHAR, columns.get("status").getSqlTypeCode(metadata));
