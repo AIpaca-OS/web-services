@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
@@ -29,11 +30,17 @@ public class DeploymentPreviewAccessFilter extends OncePerRequestFilter {
     private final String configuredKey;
     private final boolean publicDemoEnabled;
 
+    @Autowired
     public DeploymentPreviewAccessFilter(
             @Value("${DEPLOYMENT_ACCESS_TOKEN:}") String configuredKey,
             @Value("${BILLING_PUBLIC_DEMO_ENABLED:false}") boolean publicDemoEnabled) {
         this.configuredKey = configuredKey;
         this.publicDemoEnabled = publicDemoEnabled;
+    }
+
+    /** Preserve test and compatibility constructor with demo disabled. */
+    DeploymentPreviewAccessFilter(String configuredKey) {
+        this(configuredKey, false);
     }
 
     @Override
