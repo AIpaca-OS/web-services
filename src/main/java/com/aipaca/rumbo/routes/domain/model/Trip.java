@@ -42,6 +42,14 @@ public class Trip {
         if(list.isEmpty())throw new IllegalArgumentException("Stop is not on trip");
         list.forEach(TripPassenger::markStopServed);
     }
+    /** The driver's explicit confirmation, distinct from a served stop or completed journey. */
+    public void confirmStudentArrival(String studentId) {
+        if(status != TripStatus.IN_PROGRESS)
+            throw new IllegalArgumentException("Arrival can only be confirmed during an active trip");
+        var passenger = passengers.stream().filter(p -> p.getStudentId().equals(studentId))
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("Student is not on trip"));
+        passenger.confirmArrival();
+    }
     public void cancel(String reason){
         if(status==TripStatus.CANCELLED || status==TripStatus.COMPLETED)throw new IllegalArgumentException("Trip cannot be cancelled");
         if(reason==null || reason.isBlank())throw new IllegalArgumentException("Cancellation reason is required");

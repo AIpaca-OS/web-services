@@ -22,7 +22,7 @@ public final class RouteResources {
     public record TripInput(@NotNull LocalDate date) {}
     public record AbsenceInput(@NotBlank String studentId) {}
     public record CancelInput(@NotBlank String reason) {}
-    public record PassengerView(String studentId,UUID stopId,int stopPosition,String stopAddress,boolean absent,boolean stopServed) {}
+    public record PassengerView(String studentId,UUID stopId,int stopPosition,String stopAddress,boolean absent,boolean stopServed,boolean arrived) {}
     public record TripView(UUID id,UUID routeId,LocalDate serviceDate,RouteShift shift,TripStatus status,
       String cancelReason,List<PassengerView> students) {}
 }
