@@ -8,9 +8,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -63,6 +65,15 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    /** Invalid numeric path variables (e.g. /routes/eligible-students) are a 400, not a 500. */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        var error = ApplicationError.validationError(
+                ex.getName(), "Invalid path/query parameter: expected " +
+                        (ex.getRequiredType() == null ? "valid value" : ex.getRequiredType().getSimpleName()));
+        return ProblemDetailFromApplicationErrorAssembler.toResponseFromApplicationError(error);
     }
 
     /**
