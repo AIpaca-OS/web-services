@@ -29,72 +29,47 @@
 	<properties>
 		<java.version>27</java.version>
         <lombok.version>1.18.48</lombok.version>
-		<springdoc.version>3.2.0</springdoc.version>
-		<jjwt.version>0.13.0</jjwt.version>
 	</properties>
 	<dependencies>
-		<!-- Spring Boot: Web y Api REST -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+		<!-- Swagger / OpenAPI -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>${springdoc.version}</version>
+			<version>3.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
 
-		<!-- Spring Boot: Persistence y JPA -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Public health endpoint for the deployment readiness probe -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- REST API -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<!-- Persistencia con Spring Data JPA -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.github.encryptorcode</groupId>
-			<artifactId>pluralize</artifactId>
-			<version>1.0.0</version>
-		</dependency>
 
-		<!-- 3. Spring Boot: Validation -->
+		<!-- Validaciones -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-		<!-- 4. Seguridad y JWT -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-api</artifactId>
-			<version>${jjwt.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-impl</artifactId>
-			<version>${jjwt.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.jsonwebtoken</groupId>
-			<artifactId>jjwt-jackson</artifactId>
-			<version>${jjwt.version}</version>
-			<scope>runtime</scope>
-		</dependency>
-
-		<!-- 5. Utilidades de desarrollo -->
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -102,11 +77,24 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- 6. Pruebas -->
+		<!-- PostgreSQL -->
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+    
+        <!-- Lombok and pluralize, as in the shared kernel of Learning Center Platform -->
+        <dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<optional>true</optional>
+		</dependency>
+        <dependency>
+			<groupId>io.github.encryptorcode</groupId>
+			<artifactId>pluralize</artifactId>
+			<version>1.0.0</version>
 		</dependency>
     </dependencies>
 
@@ -118,11 +106,7 @@
                 <configuration>
                     <proc>full</proc>
                     <annotationProcessorPaths>
-                        <path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-							<version>${lombok.version}</version>
-						</path>
+                        <path><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><version>${lombok.version}</version></path>
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
