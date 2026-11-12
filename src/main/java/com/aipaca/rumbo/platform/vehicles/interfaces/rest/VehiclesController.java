@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.List;
 
@@ -37,6 +38,7 @@ import java.util.List;
  * REST controller that exposes vehicle registration endpoints.
  */
 @RestController
+@ConditionalOnProperty(prefix = "app.platform", name = "vehicles-enabled", havingValue = "true")
 @CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/vehicles", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Vehicles", description = "Vehicle management endpoints")
