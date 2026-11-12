@@ -1,11 +1,12 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.assemblers;
 
-import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.TutorStudentRelationship;
+import com.aipaca.rumbo.platform.profiles.domain.model.entities.TutorStudentRelationship;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.TutorStudentRelationshipPersistenceEntity;
 
 /** Internal child-entity mapping, always invoked through StudentPersistenceAssembler. */
 public final class TutorStudentRelationshipPersistenceAssembler {
-    private TutorStudentRelationshipPersistenceAssembler() { }
+    private TutorStudentRelationshipPersistenceAssembler() {
+    }
 
     public static TutorStudentRelationship toDomainFromPersistence(TutorStudentRelationshipPersistenceEntity entity) {
         if (entity == null) return null;

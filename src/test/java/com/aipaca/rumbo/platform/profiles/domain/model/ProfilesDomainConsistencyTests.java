@@ -1,7 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.domain.model;
 
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.Student;
-import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.TutorStudentRelationship;
+import com.aipaca.rumbo.platform.profiles.domain.model.entities.TutorStudentRelationship;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.RegisterStudentCommand;
 import com.aipaca.rumbo.platform.profiles.domain.model.queries.GetProfileByAccountIdQuery;
 import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.AuthorizationStatus;
@@ -16,7 +16,7 @@ class ProfilesDomainConsistencyTests {
     private static final Instant NOW = Instant.parse("2026-11-10T12:00:00Z");
     private Student registered() {
         return new Student(new RegisterStudentCommand(1L, "Ana", "Perez",
-                LocalDate.of(2016, 3, 10), 2L, RelationshipType.MOTHER), NOW);
+                LocalDate.of(2016, 3, 10), RelationshipType.MOTHER), NOW);
     }
 
     @Test void accountQueryRejectsInvalidIdentity() {
@@ -38,9 +38,8 @@ class ProfilesDomainConsistencyTests {
 
     @Test void failedStudentUpdatePreservesEarlierFields() {
         var student = registered();
-        assertThrows(NullPointerException.class, () -> student.updateInformation("Eva", "Lopez", null, 3L));
+        assertThrows(NullPointerException.class, () -> student.updateInformation("Eva", "Lopez", null));
         assertEquals("Ana Perez", student.getFullName());
-        assertEquals(2L, student.getSchoolId());
     }
 
     @Test void rejectsUnauthorizedAuthorizerAndDuplicateActiveTutor() {
@@ -79,7 +78,7 @@ class ProfilesDomainConsistencyTests {
                 AuthorizationStatus.REVOKED, NOW, NOW.plusSeconds(1));
         assertThrows(IllegalArgumentException.class, () -> Student.reconstitute(1L,
                 new com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.PersonName("Ana", "Perez"),
-                LocalDate.of(2016, 3, 10), 2L,
+                LocalDate.of(2016, 3, 10),
                 com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.StudentStatus.ACTIVE,
                 null, 0L, 0L, List.of(rel)));
     }

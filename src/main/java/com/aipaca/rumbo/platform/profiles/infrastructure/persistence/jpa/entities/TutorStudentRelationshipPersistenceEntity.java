@@ -6,6 +6,7 @@ import com.aipaca.rumbo.platform.shared.infrastructure.persistence.jpa.entities.
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.Instant;
 
 /** Child row: persists history; never has a standalone aggregate repository or pair-wide unique constraint. */

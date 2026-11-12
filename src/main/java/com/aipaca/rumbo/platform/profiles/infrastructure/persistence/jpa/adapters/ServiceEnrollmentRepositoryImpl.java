@@ -1,6 +1,7 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.adapters;
 
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.ServiceEnrollment;
+import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ServiceEnrollmentStatus;
 import com.aipaca.rumbo.platform.profiles.domain.repositories.ServiceEnrollmentRepository;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.assemblers.ServiceEnrollmentPersistenceAssembler;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.repositories.ServiceEnrollmentPersistenceRepository;
@@ -13,8 +14,8 @@ import java.util.Set;
 /** Bridges the enrollment domain port to Spring Data without granting actor permissions. */
 @Repository
 public class ServiceEnrollmentRepositoryImpl implements ServiceEnrollmentRepository {
-    private static final Set<String> CONFLICTING_STATUSES =
-            Set.of(ServiceEnrollment.PENDING, ServiceEnrollment.ACCEPTED);
+    private static final Set<ServiceEnrollmentStatus> CONFLICTING_STATUSES =
+            Set.of(ServiceEnrollmentStatus.PENDING, ServiceEnrollmentStatus.ACCEPTED);
 
     private final ServiceEnrollmentPersistenceRepository serviceEnrollmentPersistenceRepository;
 

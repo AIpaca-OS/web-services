@@ -1,5 +1,6 @@
 package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.adapters;
 
+import com.aipaca.rumbo.platform.profiles.domain.model.valueobjects.ServiceEnrollmentStatus;
 import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.ServiceEnrollment;
 import com.aipaca.rumbo.platform.profiles.domain.model.commands.RequestServiceEnrollmentCommand;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.assemblers.ServiceEnrollmentPersistenceAssembler;
@@ -37,10 +38,10 @@ class ServiceEnrollmentRepositoryImplTests {
         repository = new ServiceEnrollmentRepositoryImpl(persistenceRepository);
     }
 
-    private ServiceEnrollment stored(Long id, Long student, Long driver, String status) {
+    private ServiceEnrollment stored(Long id, Long student, Long driver, ServiceEnrollmentStatus status) {
         return ServiceEnrollment.reconstitute(id, student, driver, 9L, status, REQUESTED,
-                ServiceEnrollment.PENDING.equals(status) ? null : ACCEPTED,
-                ServiceEnrollment.ENDED.equals(status) ? ENDED : null);
+                ServiceEnrollmentStatus.PENDING.equals(status) ? null : ACCEPTED,
+                ServiceEnrollmentStatus.ENDED.equals(status) ? ENDED : null);
     }
 
     private ServiceEnrollmentPersistenceEntity asEntity(ServiceEnrollment enrollment) {
@@ -50,11 +51,11 @@ class ServiceEnrollmentRepositoryImplTests {
     @Test
     void findByIdReconstitutesStateAndIdentity() {
         when(persistenceRepository.findById(25L)).thenReturn(Optional.of(asEntity(
-                stored(25L, 7L, 8L, ServiceEnrollment.ACCEPTED))));
+                stored(25L, 7L, 8L, ServiceEnrollmentStatus.ACCEPTED))));
         var enrollment = repository.findById(25L).orElseThrow();
         assertEquals(25L, enrollment.getId());
         assertEquals(8L, enrollment.getDriverProfileId());
-        assertEquals(ServiceEnrollment.ACCEPTED, enrollment.getStatus());
+        assertEquals(ServiceEnrollmentStatus.ACCEPTED, enrollment.getStatus());
         assertTrue(enrollment.isActive());
     }
 
@@ -68,11 +69,11 @@ class ServiceEnrollmentRepositoryImplTests {
     @Test
     void driverLookupIncludesPendingAcceptedAndEndedHistory() {
         when(persistenceRepository.findAllByDriverProfileId(8L)).thenReturn(List.of(
-                asEntity(stored(25L, 7L, 8L, ServiceEnrollment.PENDING)),
-                asEntity(stored(26L, 10L, 8L, ServiceEnrollment.ACCEPTED)),
-                asEntity(stored(27L, 7L, 8L, ServiceEnrollment.ENDED))));
+                asEntity(stored(25L, 7L, 8L, ServiceEnrollmentStatus.PENDING)),
+                asEntity(stored(26L, 10L, 8L, ServiceEnrollmentStatus.ACCEPTED)),
+                asEntity(stored(27L, 7L, 8L, ServiceEnrollmentStatus.ENDED))));
         var enrollments = repository.findAllByDriverProfileId(8L);
-        assertEquals(List.of(ServiceEnrollment.PENDING, ServiceEnrollment.ACCEPTED, ServiceEnrollment.ENDED),
+        assertEquals(List.of(ServiceEnrollmentStatus.PENDING, ServiceEnrollmentStatus.ACCEPTED, ServiceEnrollmentStatus.ENDED),
                 enrollments.stream().map(ServiceEnrollment::getStatus).toList());
         assertTrue(enrollments.stream().allMatch(e -> e.getDriverProfileId().equals(8L)));
     }
@@ -80,8 +81,8 @@ class ServiceEnrollmentRepositoryImplTests {
     @Test
     void studentLookupPreservesMultipleDriversAndEndedHistory() {
         when(persistenceRepository.findAllByStudentId(7L)).thenReturn(List.of(
-                asEntity(stored(25L, 7L, 8L, ServiceEnrollment.ENDED)),
-                asEntity(stored(26L, 7L, 10L, ServiceEnrollment.ACCEPTED))));
+                asEntity(stored(25L, 7L, 8L, ServiceEnrollmentStatus.ENDED)),
+                asEntity(stored(26L, 7L, 10L, ServiceEnrollmentStatus.ACCEPTED))));
         var enrollments = repository.findAllByStudentId(7L);
         assertEquals(List.of(8L, 10L), enrollments.stream().map(ServiceEnrollment::getDriverProfileId).toList());
         assertEquals(List.of(false, true), enrollments.stream().map(ServiceEnrollment::isActive).toList());
@@ -105,8 +106,8 @@ class ServiceEnrollmentRepositoryImplTests {
             Collection<?> states = invocation.getArgument(2);
             assertEquals(7L, studentId);
             assertEquals(8L, driverId);
-            assertEquals(Set.of(ServiceEnrollment.PENDING, ServiceEnrollment.ACCEPTED), Set.copyOf(states));
-            assertFalse(states.contains(ServiceEnrollment.ENDED));
+            assertEquals(Set.of(ServiceEnrollmentStatus.PENDING, ServiceEnrollmentStatus.ACCEPTED), Set.copyOf(states));
+            assertFalse(states.contains(ServiceEnrollmentStatus.ENDED));
             return true;
         });
         assertTrue(repository.existsPendingOrAcceptedByStudentIdAndDriverProfileId(7L, 8L));
@@ -118,7 +119,7 @@ class ServiceEnrollmentRepositoryImplTests {
                 eq(7L), eq(8L), any())).thenAnswer(invocation -> {
             Collection<?> statuses = invocation.getArgument(2);
             // The saved history contains only ENDED rows, which are not part of the lookup.
-            assertFalse(statuses.contains(ServiceEnrollment.ENDED));
+            assertFalse(statuses.contains(ServiceEnrollmentStatus.ENDED));
             return false;
         });
         assertFalse(repository.existsPendingOrAcceptedByStudentIdAndDriverProfileId(7L, 8L));
@@ -136,12 +137,12 @@ class ServiceEnrollmentRepositoryImplTests {
     @Test
     void saveNewEnrollmentUsesGeneratedIdentityReturnedByJpa() {
         var enrollment = new ServiceEnrollment(new RequestServiceEnrollmentCommand(7L, 8L, 9L), REQUESTED);
-        var saved = asEntity(stored(25L, 7L, 8L, ServiceEnrollment.PENDING));
+        var saved = asEntity(stored(25L, 7L, 8L, ServiceEnrollmentStatus.PENDING));
         when(persistenceRepository.save(any(ServiceEnrollmentPersistenceEntity.class))).thenAnswer(invocation -> {
             ServiceEnrollmentPersistenceEntity input = invocation.getArgument(0);
             assertNull(input.getId());
             assertEquals(9L, input.getRequestedByProfileId());
-            assertEquals(ServiceEnrollment.PENDING, input.getStatus());
+            assertEquals(ServiceEnrollmentStatus.PENDING, input.getStatus());
             assertEquals(REQUESTED, input.getRequestedAt());
             return saved;
         });
@@ -151,7 +152,7 @@ class ServiceEnrollmentRepositoryImplTests {
 
     @Test
     void acceptedAndEndedUpdatesKeepTheSameIdentity() {
-        var enrollment = stored(25L, 7L, 8L, ServiceEnrollment.PENDING);
+        var enrollment = stored(25L, 7L, 8L, ServiceEnrollmentStatus.PENDING);
         when(persistenceRepository.save(any(ServiceEnrollmentPersistenceEntity.class))).thenAnswer(invocation -> {
             ServiceEnrollmentPersistenceEntity input = invocation.getArgument(0);
             assertEquals(25L, input.getId());
@@ -163,7 +164,7 @@ class ServiceEnrollmentRepositoryImplTests {
         accepted.end(ENDED);
         var ended = repository.save(accepted);
         assertEquals(25L, ended.getId());
-        assertEquals(ServiceEnrollment.ENDED, ended.getStatus());
+        assertEquals(ServiceEnrollmentStatus.ENDED, ended.getStatus());
         assertEquals(REQUESTED, ended.getRequestedAt());
         assertEquals(ACCEPTED, ended.getAcceptedAt());
         assertEquals(ENDED, ended.getEndedAt());
@@ -175,6 +176,6 @@ class ServiceEnrollmentRepositoryImplTests {
         var failure = new DataIntegrityViolationException("uk_service_enrollments_active_pair");
         when(persistenceRepository.save(any(ServiceEnrollmentPersistenceEntity.class))).thenThrow(failure);
         assertSame(failure, assertThrows(DataIntegrityViolationException.class,
-                () -> repository.save(stored(25L, 7L, 8L, ServiceEnrollment.ACCEPTED))));
+                () -> repository.save(stored(25L, 7L, 8L, ServiceEnrollmentStatus.ACCEPTED))));
     }
 }

@@ -5,7 +5,9 @@ import com.aipaca.rumbo.platform.profiles.domain.model.aggregates.DataDeletionRe
 import java.util.List;
 import java.util.Optional;
 
-/** Student data deletion request repository port; saving a request does not delete student data. */
+/**
+ * Data deletion request repository port.
+ */
 public interface DataDeletionRequestRepository {
     Optional<DataDeletionRequest> findById(Long id);
 

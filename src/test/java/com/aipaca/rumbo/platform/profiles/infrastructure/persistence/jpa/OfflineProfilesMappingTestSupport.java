@@ -2,7 +2,6 @@ package com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa;
 
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.ProfilePersistenceEntity;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.DataDeletionRequestPersistenceEntity;
-import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.SchoolPersistenceEntity;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.ServiceEnrollmentPersistenceEntity;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.StudentPersistenceEntity;
 import com.aipaca.rumbo.platform.profiles.infrastructure.persistence.jpa.entities.TutorStudentRelationshipPersistenceEntity;
@@ -42,7 +41,6 @@ abstract class OfflineProfilesMappingTestSupport {
                 .build();
         metadata = (MetadataImplementor) new MetadataSources(registry)
                 .addAnnotatedClass(ProfilePersistenceEntity.class)
-                .addAnnotatedClass(SchoolPersistenceEntity.class)
                 .addAnnotatedClass(TutorStudentRelationshipPersistenceEntity.class)
                 .addAnnotatedClass(StudentPersistenceEntity.class)
                 .addAnnotatedClass(ServiceEnrollmentPersistenceEntity.class)

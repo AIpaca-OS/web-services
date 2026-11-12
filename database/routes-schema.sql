@@ -33,9 +33,6 @@ CREATE TABLE IF NOT EXISTS rp_trip_passengers (
   stop_id uuid NOT NULL, stop_position integer NOT NULL,
   stop_address varchar(350) NOT NULL, absent boolean NOT NULL DEFAULT false,
   stop_served boolean NOT NULL DEFAULT false,
-  arrived_at TIMESTAMPTZ,
   PRIMARY KEY(trip_id,student_id)
 );
--- If the table was created before arrival tracking was introduced:
-ALTER TABLE rp_trip_passengers ADD COLUMN IF NOT EXISTS arrived_at TIMESTAMPTZ;
 COMMIT;
