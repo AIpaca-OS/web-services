@@ -17,7 +17,7 @@ import java.util.Optional;
 /**
  * Trip Query Service Implementation
  */
-@Service
+@Service("platformTripsQueryService")
 @Transactional(readOnly = true)
 public class TripQueryServiceImpl implements TripQueryService {
     private final TripRepository tripRepository;

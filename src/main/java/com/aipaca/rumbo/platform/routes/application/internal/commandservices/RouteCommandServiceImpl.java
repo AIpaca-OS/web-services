@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Route Command Service Implementation
  */
-@Service
+@Service("platformRoutesCommandService")
 @Transactional
 public class RouteCommandServiceImpl implements RouteCommandService {
     private final RouteRepository routeRepository;

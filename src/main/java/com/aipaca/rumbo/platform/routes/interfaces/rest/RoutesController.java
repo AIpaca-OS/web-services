@@ -35,7 +35,7 @@ import java.util.List;
  * REST controller that exposes route planning endpoints: stops, schedules and publication.
  */
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "app.platform", name = "routes-enabled", havingValue = "true")
-@RestController
+@RestController("platformRoutesController")
 @CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RequestMapping(value = "/api/v1/routes", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Routes", description = "School route planning endpoints")

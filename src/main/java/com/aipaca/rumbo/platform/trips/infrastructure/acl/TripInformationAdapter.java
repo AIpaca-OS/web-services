@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.util.Optional;
 
 /** Adapts Trips' own query service to the shared read-only contract. */
-@Component
+@Component("platformTripInformationAdapter")
 public class TripInformationAdapter implements TripInformationPort {
     private final TripQueryService trips;
 

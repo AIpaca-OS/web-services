@@ -15,7 +15,7 @@ import java.util.Optional;
 /**
  * Repository adapter that bridges the domain trip repository port with Spring Data JPA.
  */
-@Repository
+@Repository("platformTripsRepositoryAdapter")
 public class TripRepositoryImpl implements TripRepository {
 
     private final TripPersistenceRepository tripPersistenceRepository;

@@ -13,7 +13,7 @@ import java.util.Optional;
 /**
  * Repository adapter that bridges the domain route repository port with Spring Data JPA.
  */
-@Repository
+@Repository("platformRoutesRepositoryAdapter")
 public class RouteRepositoryImpl implements RouteRepository {
 
     private final RoutePersistenceRepository routePersistenceRepository;
