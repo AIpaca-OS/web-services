@@ -1,4 +1,5 @@
 package com.aipaca.rumbo.platform.billing.infrastructure.security;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,6 +29,7 @@ import java.security.MessageDigest;
  */
 @Component
 @Profile("prod")
+@ConditionalOnProperty(name = "BILLING_PRIVATE_ACCESS_ENABLED", havingValue = "true")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public final class BillingPrivateApiAccessFilter extends OncePerRequestFilter {
     private final String configuredKey;
