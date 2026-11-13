@@ -56,6 +56,9 @@ public class OpenApiConfiguration {
                         .url("http://localhost:8080")
                         .description("Local Development Environment"),
                 new Server()
+                        .url("https://web-services-gjgh.onrender.com")
+                        .description("Production Environment"),
+                new Server()
                         .url("/")
                         .description("Current Environment")
         ));
