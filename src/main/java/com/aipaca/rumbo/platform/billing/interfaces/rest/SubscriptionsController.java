@@ -39,6 +39,7 @@ import com.aipaca.rumbo.platform.billing.interfaces.rest.resources.ChangeSubscri
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RestController
 @RequestMapping(value = "/api/v1/subscriptions",
         produces = APPLICATION_JSON_VALUE)

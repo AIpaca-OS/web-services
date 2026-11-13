@@ -29,6 +29,7 @@ import java.time.ZoneId;
  * A client can access only its randomly assigned demo driver through a signed bearer token.
  * Private subscription endpoints remain protected by DeploymentPreviewAccessFilter.
  */
+@CrossOrigin(origins = "${app.cors.allowed-origins:*}")
 @RestController
 @RequestMapping("/api/v1/billing-demo")
 @ConditionalOnProperty(name = "BILLING_PUBLIC_DEMO_ENABLED", havingValue = "true")
